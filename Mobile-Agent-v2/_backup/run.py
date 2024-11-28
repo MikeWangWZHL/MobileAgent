@@ -19,26 +19,19 @@ from modelscope import snapshot_download, AutoModelForCausalLM, AutoTokenizer, G
 from dashscope import MultiModalConversation
 import dashscope
 import concurrent
-import json
-
-import os
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 ####################################### Edit your Setting #########################################
 # Your ADB path
-adb_path = "/Users/wangz3/Desktop/vlm_agent_project/platform-tools/adb"
+adb_path = ""
 
 # Your instruction
-instruction = "Find the best reviewed Korean restaurant in my area that is within 10min drive and opens late until 10pm."
-run_name = "test"
+instruction = ""
 
 # Your GPT-4o API URL
-API_url = "https://api.openai.com/v1/chat/completions"
+API_url = ""
 
 # Your GPT-4o API Token
-# token = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_school", "r").read()
-# token = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_school_ecole", "r").read()
-token = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_taobao", "r").read()
+token = ""
 
 # Choose between "api" and "local". api: use the qwen api. local: use the local qwen checkpoint
 caption_call_method = "api"
@@ -47,20 +40,16 @@ caption_call_method = "api"
 caption_model = "qwen-vl-plus"
 
 # If you choose the api caption call method, input your Qwen api here
-qwen_api = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_key_mine", "r").read()
-# qwen_api = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_key_from_xi", "r").read()
+qwen_api = ""
 
 # You can add operational knowledge to help Agent operate more accurately.
 add_info = "If you want to tap an icon of an app, use the action \"Open app\". If you want to exit an app, use the action \"Home\""
 
 # Reflection Setting: If you want to improve the operating speed, you can disable the reflection agent. This may reduce the success rate.
 reflection_switch = True
-# reflection_switch = False
 
 # Memory Setting: If you want to improve the operating speed, you can disable the memory unit. This may reduce the success rate.
 memory_switch = True
-# memory_switch = False
-
 ###################################################################################################
 
 
@@ -268,17 +257,8 @@ else:
 ### Load ocr and icon detection model ###
 groundingdino_dir = snapshot_download('AI-ModelScope/GroundingDINO', revision='v1.0.0')
 groundingdino_model = pipeline('grounding-dino-task', model=groundingdino_dir)
-# ocr_detection = pipeline(Tasks.ocr_detection, model='damo/cv_resnet18_ocr-detection-line-level_damo')
-ocr_detection = pipeline(Tasks.ocr_detection, model='iic/cv_resnet18_ocr-detection-db-line-level_damo') # dbnet (no tensorflow)
-# ocr_recognition = pipeline(Tasks.ocr_recognition, model='damo/cv_convnextTiny_ocr-recognition-document_damo')
-ocr_recognition = pipeline(Tasks.ocr_recognition, model='iic/cv_convnextTiny_ocr-recognition-document_damo')
-
-
-### log dir ###
-unique_id = time.strftime("%Y%m%d-%H%M%S")
-log_dir = f"log/{run_name}/{unique_id}"
-os.makedirs(f"log/{run_name}/{unique_id}/screenshots", exist_ok=True)
-log_json_path = f"{log_dir}/steps.json"
+ocr_detection = pipeline(Tasks.ocr_detection, model='damo/cv_resnet18_ocr-detection-line-level_damo')
+ocr_recognition = pipeline(Tasks.ocr_recognition, model='damo/cv_convnextTiny_ocr-recognition-document_damo')
 
 
 thought_history = []
@@ -300,14 +280,7 @@ if not os.path.exists(screenshot):
     os.mkdir(screenshot)
 error_flag = False
 
-steps = []
-steps.append({
-    "step": 0,
-    "step_type": "input",
-    "instruction": instruction,
-    "add_info": add_info,
-    "run_name": run_name,
-})
+
 iter = 0
 while True:
     iter += 1
@@ -325,19 +298,6 @@ while True:
             if 'ADB Keyboard' in perception_info['text']:
                 keyboard = True
                 break
-        
-        ## log ##
-        Image.open(screenshot_file).save(f"{log_dir}/screenshots/{iter}.jpg")
-        steps.append({
-            "step": iter,
-            "operation": "perception",
-            "screenshot": f"screenshots/{iter}.jpg",
-            "perception_infos": perception_infos,
-        })
-        with open(log_json_path, "w") as f:
-            json.dump(steps, f, indent=4)
-        # import pdb; pdb.set_trace()
-        ##
 
     prompt_action = get_action_prompt(instruction, perception_infos, width, height, keyboard, summary_history, action_history, summary, action, add_info, error_flag, completed_requirements, memory)
     chat_action = init_action_chat()
@@ -349,56 +309,23 @@ while True:
     action = output_action.split("### Action ###")[-1].split("### Operation ###")[0].replace("\n", " ").replace("  ", " ").strip()
     chat_action = add_response("assistant", output_action, chat_action)
     status = "#" * 50 + " Decision " + "#" * 50
-    print(f"$$$ prompt_action $$$:\n {prompt_action}")
     print(status)
     print(output_action)
     print('#' * len(status))
-
-    ## log ##
-    steps.append({
-        "step": iter,
-        "operation": "action",
-        "screenshot": f"screenshots/{iter}.jpg",
-        "prompt_action": prompt_action,
-        "thought": thought,
-        "summary": summary,
-        "action": action,
-    })
-    with open(log_json_path, "w") as f:
-        json.dump(steps, f, indent=4)
-    # import pdb; pdb.set_trace()
-    ##
-
-
-    ## update memory of current state before executing the action ##
+    
     if memory_switch:
         prompt_memory = get_memory_prompt(insight)
         chat_action = add_response("user", prompt_memory, chat_action)
         output_memory = inference_chat(chat_action, 'gpt-4o', API_url, token)
         chat_action = add_response("assistant", output_memory, chat_action)
         status = "#" * 50 + " Memory " + "#" * 50
-        print("$$$ prompt_memory:$$$\n", prompt_memory)
         print(status)
         print(output_memory)
         print('#' * len(status))
         output_memory = output_memory.split("### Important content ###")[-1].split("\n\n")[0].strip() + "\n"
         if "None" not in output_memory and output_memory not in memory:
             memory += output_memory
-
-        ## log ##
-        steps.append({
-            "step": iter,
-            "operation": "memory",
-            "screenshot": f"{log_dir}/screenshots/{iter}.jpg",
-            "prompt_memory": prompt_memory,
-            "memory": memory,
-        })
-        with open(log_json_path, "w") as f:
-            json.dump(steps, f, indent=4)
-        # import pdb; pdb.set_trace()
-        ##
-
-    ## action execution ## 
+    
     if "Open app" in action:
         app_name = action.split("(")[-1].split(")")[0]
         text, coordinate = ocr(screenshot_file, ocr_detection, ocr_recognition)
@@ -439,7 +366,6 @@ while True:
     
     time.sleep(5)
     
-    ## perception on the next step ##
     last_perception_infos = copy.deepcopy(perception_infos)
     last_screenshot_file = "./screenshot/last_screenshot.jpg"
     last_keyboard = keyboard
@@ -458,21 +384,7 @@ while True:
         if 'ADB Keyboard' in perception_info['text']:
             keyboard = True
             break
-
-    ## log ##
-    Image.open(screenshot_file).save(f"{log_dir}/screenshots/{iter+1}.jpg")
-    steps.append({
-        "step": iter+1,
-        "operation": "perception",
-        "screenshot": f"{log_dir}/screenshots/{iter+1}.jpg",
-        "perception_infos": perception_infos,
-    })
-    with open(log_json_path, "w") as f:
-        json.dump(steps, f, indent=4)
-    # import pdb; pdb.set_trace()
-    ##
-
-    ## reflection ##
+    
     if reflection_switch:
         prompt_reflect = get_reflect_prompt(instruction, last_perception_infos, perception_infos, width, height, last_keyboard, keyboard, summary, action, add_info)
         chat_reflect = init_reflect_chat()
@@ -482,7 +394,6 @@ while True:
         reflect = output_reflect.split("### Answer ###")[-1].replace("\n", " ").strip()
         chat_reflect = add_response("assistant", output_reflect, chat_reflect)
         status = "#" * 50 + " Reflcetion " + "#" * 50
-        print("$$$ prompt_reflect $$$:\n", prompt_reflect)
         print(status)
         print(output_reflect)
         print('#' * len(status))
@@ -511,25 +422,8 @@ while True:
             
         elif 'C' in reflect:
             error_flag = True
-
-        
-        ## log ##
-        steps.append({
-            "step": iter+1,
-            "operation": "reflection",
-            "screenshots": [f"{log_dir}/screenshots/{iter}.jpg", f"{log_dir}/screenshots/{iter+1}.jpg"],
-            "prompt_reflect": prompt_reflect,
-            "error_flag": error_flag,
-            "reflect": reflect,
-        })
-        with open(log_json_path, "w") as f:
-            json.dump(steps, f, indent=4)
-        # import pdb; pdb.set_trace()
-        ##
     
     else:
-        error_flag = False
-        
         thought_history.append(thought)
         summary_history.append(summary)
         action_history.append(action)
@@ -540,31 +434,9 @@ while True:
         output_planning = inference_chat(chat_planning, 'gpt-4-turbo', API_url, token)
         chat_planning = add_response("assistant", output_planning, chat_planning)
         status = "#" * 50 + " Planning " + "#" * 50
-        print("$$$ prompt_planning:$$$\n", prompt_planning)
         print(status)
         print(output_planning)
         print('#' * len(status))
         completed_requirements = output_planning.split("### Completed contents ###")[-1].replace("\n", " ").strip()
-
+         
     os.remove(last_screenshot_file)
-
-
-    ## log ##
-    if reflection_switch and error_flag:
-        steps.append({
-            "step": iter+1,
-            "operation": "error_handling",
-            "reflect": reflect,
-        })
-    else:
-        steps.append({
-            "step": iter+1,
-            "operation": "planning",
-            "prompt_planning": prompt_planning,
-            "plan": output_planning,
-        })
-        
-    with open(log_json_path, "w") as f:
-        json.dump(steps, f, indent=4)
-    import pdb; pdb.set_trace()
-    ##

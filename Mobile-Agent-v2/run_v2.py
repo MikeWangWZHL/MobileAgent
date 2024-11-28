@@ -8,8 +8,9 @@ from PIL import Image, ImageDraw
 from MobileAgent.api import inference_chat
 from MobileAgent.text_localization import ocr
 from MobileAgent.icon_localization import det
-from MobileAgent.controller import get_screenshot, tap, slide, type, back, home
-from MobileAgent.prompt import get_action_prompt, get_reflect_prompt, get_memory_prompt, get_process_prompt
+from MobileAgent.controller import get_screenshot, tap, slide, type, back, home, type_and_enter, clear_background_and_back_to_home
+# from MobileAgent.prompt import get_action_prompt, get_reflect_prompt, get_memory_prompt, get_process_prompt
+from MobileAgent.prompt_v2 import get_action_prompt, get_reflect_prompt, get_memory_prompt, get_process_prompt
 from MobileAgent.chat import init_action_chat, init_reflect_chat, init_memory_chat, add_response, add_response_two_image
 
 from modelscope.pipelines import pipeline
@@ -242,6 +243,11 @@ def get_perception_infos(adb_path, screenshot_file):
         
     return perception_infos, width, height
 
+
+### reset the phone status ###
+print("DEBUG: Reseting the phone status...")
+clear_background_and_back_to_home(adb_path)
+
 ### Load caption model ###
 device = "cuda"
 torch.manual_seed(1234)
@@ -421,12 +427,19 @@ while True:
         x2, y2 = int(coordinate2[0]), int(coordinate2[1])
         slide(adb_path, x1, y1, x2, y2)
         
-    elif "Type" in action:
+    elif "Type" in action and "Enter" not in action:
         if "(text)" not in action:
             text = action.split("(")[-1].split(")")[0]
         else:
             text = action.split(" \"")[-1].split("\"")[0]
         type(adb_path, text)
+    
+    elif "Type" in action and "Enter" in action:
+        if "(text)" not in action:
+            text = action.split("(")[-1].split(")")[0]
+        else:
+            text = action.split(" \"")[-1].split("\"")[0]
+        type_and_enter(adb_path, text)
     
     elif "Back" in action:
         back(adb_path)
@@ -566,5 +579,9 @@ while True:
         
     with open(log_json_path, "w") as f:
         json.dump(steps, f, indent=4)
-    import pdb; pdb.set_trace()
+    
+    # import pdb; pdb.set_trace()
+    from time import sleep
+    print("sleeping for 5 before next iteration")
+    sleep(5)
     ##

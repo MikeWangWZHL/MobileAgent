@@ -53,7 +53,7 @@ def type_and_enter(adb_path, text):
     sleep(0.5)
     enter(adb_path)
 
-def slide(adb_path, x1, y1, x2, y2):
+def swipe(adb_path, x1, y1, x2, y2):
     command = adb_path + f" shell input swipe {x1} {y1} {x2} {y2} 500"
     subprocess.run(command, capture_output=True, text=True, shell=True)
 

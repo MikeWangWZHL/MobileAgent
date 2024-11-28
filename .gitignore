@@ -4,3 +4,7 @@ __pycache__/
 # custom
 **/screenshot/*
 **/temp/*
+
+*openai_key*
+*qwen_key*
+*api_key*
