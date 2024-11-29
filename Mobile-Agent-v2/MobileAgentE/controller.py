@@ -48,10 +48,10 @@ def enter(adb_path):
     command = adb_path + f" shell input keyevent KEYCODE_ENTER"
     subprocess.run(command, capture_output=True, text=True, shell=True)
 
-def type_and_enter(adb_path, text):
-    type(adb_path, text)
-    sleep(0.5)
-    enter(adb_path)
+# def type_and_enter(adb_path, text):
+#     type(adb_path, text)
+#     sleep(0.5)
+#     enter(adb_path)
 
 def swipe(adb_path, x1, y1, x2, y2):
     command = adb_path + f" shell input swipe {x1} {y1} {x2} {y2} 500"
@@ -65,7 +65,7 @@ def back(adb_path):
     
 def home(adb_path):
     # command = adb_path + f" shell am start -a android.intent.action.MAIN -c android.intent.category.HOME"
-    command = adb_path + f" adb shell input keyevent KEYCODE_HOME"
+    command = adb_path + f" shell input keyevent KEYCODE_HOME"
     subprocess.run(command, capture_output=True, text=True, shell=True)
 
 def switch_app(adb_path):
