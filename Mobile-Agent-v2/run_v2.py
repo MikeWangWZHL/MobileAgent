@@ -62,6 +62,8 @@ reflection_switch = True
 memory_switch = True
 # memory_switch = False
 
+
+reasoning_model_name = "gpt-4o-2024-11-20"
 ###################################################################################################
 
 
@@ -248,6 +250,8 @@ def get_perception_infos(adb_path, screenshot_file):
 print("DEBUG: Reseting the phone status...")
 clear_background_and_back_to_home(adb_path)
 
+
+
 ### Load caption model ###
 device = "cuda"
 torch.manual_seed(1234)
@@ -282,8 +286,8 @@ ocr_recognition = pipeline(Tasks.ocr_recognition, model='iic/cv_convnextTiny_ocr
 
 ### log dir ###
 unique_id = time.strftime("%Y%m%d-%H%M%S")
-log_dir = f"log/{run_name}/{unique_id}"
-os.makedirs(f"log/{run_name}/{unique_id}/screenshots", exist_ok=True)
+log_dir = f"log/revised_mobile_agent_v2/{run_name}/{unique_id}"
+os.makedirs(f"{log_dir}/screenshots", exist_ok=True)
 log_json_path = f"{log_dir}/steps.json"
 
 
@@ -349,7 +353,7 @@ while True:
     chat_action = init_action_chat()
     chat_action = add_response("user", prompt_action, chat_action, screenshot_file)
 
-    output_action = inference_chat(chat_action, 'gpt-4o', API_url, token)
+    output_action = inference_chat(chat_action, reasoning_model_name, API_url, token)
     thought = output_action.split("### Thought ###")[-1].split("### Action ###")[0].replace("\n", " ").replace(":", "").replace("  ", " ").strip()
     summary = output_action.split("### Operation ###")[-1].replace("\n", " ").replace("  ", " ").strip()
     action = output_action.split("### Action ###")[-1].split("### Operation ###")[0].replace("\n", " ").replace("  ", " ").strip()
@@ -380,7 +384,7 @@ while True:
     if memory_switch:
         prompt_memory = get_memory_prompt(insight)
         chat_action = add_response("user", prompt_memory, chat_action)
-        output_memory = inference_chat(chat_action, 'gpt-4o', API_url, token)
+        output_memory = inference_chat(chat_action, reasoning_model_name, API_url, token)
         chat_action = add_response("assistant", output_memory, chat_action)
         status = "#" * 50 + " Memory " + "#" * 50
         print("$$$ prompt_memory:$$$\n", prompt_memory)
@@ -491,7 +495,7 @@ while True:
         chat_reflect = init_reflect_chat()
         chat_reflect = add_response_two_image("user", prompt_reflect, chat_reflect, [last_screenshot_file, screenshot_file])
 
-        output_reflect = inference_chat(chat_reflect, 'gpt-4o', API_url, token)
+        output_reflect = inference_chat(chat_reflect, reasoning_model_name, API_url, token)
         reflect = output_reflect.split("### Answer ###")[-1].replace("\n", " ").strip()
         chat_reflect = add_response("assistant", output_reflect, chat_reflect)
         status = "#" * 50 + " Reflcetion " + "#" * 50

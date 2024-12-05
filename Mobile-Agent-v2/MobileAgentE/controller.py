@@ -79,7 +79,7 @@ def clear_background_and_back_to_home(adb_path):
     command = adb_path + f" shell input keyevent KEYCODE_APP_SWITCH"
     subprocess.run(command, capture_output=True, text=True, shell=True)
     # tap closs all
-    sleep(0.5)
+    sleep(2)
     tap(adb_path, 540, 1835)
-    sleep(0.5)
+    sleep(2)
     home(adb_path)

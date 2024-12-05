@@ -131,25 +131,33 @@ class InfoPool:
     # Perception
     width: int = 1080
     height: int = 2340
-    clickable_infos_pre: list = field(default_factory=list) # List of clickable elements pre action
+    perception_infos_pre: list = field(default_factory=list) # List of clickable elements pre action
     keyboard_pre: bool = False # keyboard status pre action
-    clickable_infos_post: list = field(default_factory=list) # List of clickable elements post action
+    perception_infos_post: list = field(default_factory=list) # List of clickable elements post action
     keyboard_post: bool = False # keyboard status post action
 
     # Working memory
     summary_history: list = field(default_factory=list)  # List of action descriptions
     action_history: list = field(default_factory=list)  # List of actions
+    action_outcomes: list = field(default_factory=list)  # List of action outcomes
+    error_descriptions: list = field(default_factory=list)
+
     last_summary: str = ""  # Last action description
     last_action: str = ""  # Last action
+    last_action_thought: str = ""  # Last action thought
     important_notes: str = ""
-    error_flag_plan: bool = False
-    error_flags_action: list = field(default_factory=list)
-    error_descriptions: list = field(default_factory=list)
+    
+    error_flag_plan: bool = False # if an error is not solved for multiple attempts with the executor
+    error_description_plan: bool = False # explanation of the error for modifying the plan
 
     # Planning
     plan: str = ""
     progress_status: str = ""
+    progress_status_history: list = field(default_factory=list)
+    finish_thought: str = ""
     current_subgoal: str = ""
+    prev_subgoal: str = ""
+
 
 
 class BaseAgent(ABC):
@@ -162,7 +170,6 @@ class BaseAgent(ABC):
     @abstractmethod
     def parse_response(self, response: str) -> dict:
         pass
-
 
 
 class Manager(BaseAgent):
@@ -180,14 +187,14 @@ class Manager(BaseAgent):
         if info_pool.plan == "":
             # first time planning
             prompt += "---\n"
-            prompt += "Make a plan to achieve the user's instruction. If the request is complex, break it down into subgoals. If the request involves exploration, include concrete subgoals to quantify the necessary research.\n\n"
-            prompt += "Provide your output in the following format which contains three parts:\n"
+            prompt += "Think step by step and make an high-level plan to achieve the user's instruction. If the request is complex, break it down into subgoals. If the request involves exploration, include concrete subgoals to quantify the investigation steps. The screenshot displays the starting state of the phone.\n\n"
+            prompt += "Provide your output in the following format which contains three parts:\n\n"
             prompt += "### Thought ###\n"
             prompt += "A detailed explanation of your rationale for the plan and subgoals.\n\n"
             prompt += "### Plan ###\n"
             prompt += "1. first subgoal\n"
             prompt += "2. second subgoal\n"
-            prompt += "...\n"
+            prompt += "...\n\n"
             prompt += "### Current Subgoal ###\n"
             prompt += "The first subgoal you should work on.\n\n"
         else:
@@ -204,19 +211,23 @@ class Manager(BaseAgent):
             else:
                 prompt += "No important notes recorded.\n\n"
             if info_pool.error_flag_plan:
-                prompt += "### Error Description ###\n"
-                prompt += f"{info_pool.error_description}\n\n"
+                prompt += "### Stuck with Errors! ###\n"
+                prompt += "You have encountered some errors that has not been resolved for three consecutive attempts. Here are some logs:\n"
+                for i, (act, summ, err_des) in enumerate(zip(info_pool.action_history, info_pool.summary_history, info_pool.error_descriptions)):
+                    prompt += f"- Attempt {i+1}: Action: {act} | Description: {summ} | Outcome: Failed | Error Description: {err_des}\n"
             prompt += "---\n"
-            prompt += "The sections above provide an overview of the plan you are following, the current subgoal you are working on, the overall progress made, and any important notes you have recorded.\n"
-            prompt += "Carefully assess the current status to determine if the task has been fully completed. If the user's request involves exploration, ensure you have conducted sufficient investigation. If you are confident that no further actions are required, mark the task as \"Finished\" in your output. If the task is not finished, outline the next steps. If an \"Error Description\" is provided, think step by step about how to revise the plan to address the error.\n\n"
+            prompt += "The sections above provide an overview of the plan you are following, the current subgoal you are working on, the overall progress made, and any important notes you have recorded. The screenshot displays the current state of the phone.\n"
+            prompt += "Carefully assess the current status to determine if the task has been fully completed. If the user's request involves exploration, ensure you have conducted sufficient investigation. If you are confident that no further actions are required, mark the task as \"Finished\" in your output. If the task is not finished, outline the next steps. If you are stuck with errors, think step by step about whether the overall plan needs to be revised to address the error.\n"
+            prompt += "NOTE: If the current situation prevents proceeding with the original plan or requires clarification from the user, make reasonable assumptions and revise the plan accordingly. Act as though you are the user in such cases.\n\n"
 
-            prompt += "Provide your output in the following format, which contains three parts:\n"
+
+            prompt += "Provide your output in the following format, which contains three parts:\n\n"
             prompt += "### Thought ###\n"
             prompt += "Provide a detailed explanation of your rationale for the plan and subgoals.\n\n"
             prompt += "### Plan ###\n"
-            prompt += "Include your current plan if no updates are needed. If an update is required, provide the updated plan here.\n\n"
+            prompt += "If an update is required for the high-level plan, provide the updated plan here. Otherwise, keep the current plan and copy it here.\n\n"
             prompt += "### Current Subgoal ###\n"
-            prompt += "List the next subgoal to work on. If the previous subgoal is not yet complete, copy it here. If all subgoals are completed, write \"Finished.\"\n"
+            prompt += "The next subgoal to work on. If the previous subgoal is not yet complete, copy it here. If all subgoals are completed, write \"Finished\".\n"
         return prompt
 
     def parse_response(self, response: str) -> dict:
@@ -259,7 +270,11 @@ ATOMIC_ACTION_SIGNITURES = {
     "Home": {
         "arguments": [],
         "description": lambda info: "Return to home page."
-    }
+    },
+    # "Finish": {
+    #     "arguments": [],
+    #     "description": lambda info: "Finish the task."
+    # }
 }
 
 INIT_SHORTCUTS = {
@@ -305,17 +320,22 @@ class Executor(BaseAgent):
             num_actions = min(5, len(info_pool.action_history))
             latest_actions = info_pool.action_history[-num_actions:]
             latest_summary = info_pool.summary_history[-num_actions:]
-            error_flags = info_pool.error_flags_action[-num_actions:]
+            latest_outcomes = info_pool.action_outcomes[-num_actions:]
             error_descriptions = info_pool.error_descriptions[-num_actions:]
-            for act, summ, err, err_des in zip(latest_actions, latest_summary, error_flags, error_descriptions):
-                if not err:
+            for act, summ, outcome, err_des in zip(latest_actions, latest_summary, latest_outcomes, error_descriptions):
+                if outcome == "A":
                     prompt += f"Action: {act} | Description: {summ} | Outcome: Successful\n"
                 else:
                     prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Error Description: {err_des}\n"
             prompt += "\n"
+            
+            last_action_outcome = info_pool.action_outcomes[-1]
+            if last_action_outcome == "B":
+                prompt += "NOTE: Since the last action failed and resulted in an incorrect page, I have reverted the phone state to its previous state for you.\n\n"
+            elif last_action_outcome == "C":
+                prompt += "NOTE: Since the last action failed and did not have any effect, the state of the phone remains unchanged.\n\n"
         else:
             prompt += "No actions have been taken yet.\n\n"
-
 
         prompt += "### Screen Information ###\n"
         prompt += (
@@ -329,7 +349,7 @@ class Executor(BaseAgent):
         )
         prompt += "The extracted information is as follows:\n"
 
-        for clickable_info in info_pool.clickable_infos_pre:
+        for clickable_info in info_pool.perception_infos_pre:
             if clickable_info['text'] != "" and clickable_info['text'] != "icon: None" and clickable_info['coordinates'] != (0, 0):
                 prompt += f"{clickable_info['coordinates']}; {clickable_info['text']}\n"
         prompt += "\n"
@@ -351,9 +371,9 @@ class Executor(BaseAgent):
             prompt += "From previous experience interacting with the device, you have collected the following tips that might be useful for deciding what to do next:\n"
             prompt += f"{info_pool.additional_knowledge}\n\n"
 
-
         prompt += "---\n"
-        prompt += "Carefully examine all the information provided above and decide on the next action to perform. If you notice any errors in the previous actions, think as a human user and attempt to rectify them. You must choose your action from one of the atomic actions or the shortcuts. The shortcuts are predefined sequences of actions that can be used to speed up the process. Each shortcut has a precondition specifying when it is suitable to use. If you plan to use a shortcut, ensure the current phone state satisfies its precondition first.\n\n"
+        prompt += "Carefully examine all the information provided above and decide on the next action to perform. If you notice an unsolved error in the previous action, think as a human user and attempt to rectify them. You must choose your action from one of the atomic actions or the shortcuts. The shortcuts are predefined sequences of actions that can be used to speed up the process. Each shortcut has a precondition specifying when it is suitable to use. If you plan to use a shortcut, ensure the current phone state satisfies its precondition first.\n\n"
+        
         prompt += "#### Atomic Actions ####\n"
         prompt += "The atomic action functions are listed in the format of `name(arguments): description` as follows:\n"
 
@@ -363,15 +383,15 @@ class Executor(BaseAgent):
         else:
             for action, value in ATOMIC_ACTION_SIGNITURES.items():
                 if "Type" not in action:
-                    prompt += f"{action}({', '.join(value['arguments'])}): {value['description'](info_pool)}\n"
-            prompt += "\nNOTE: Unable to Type. You cannot use the actions involving \"Type\" because the keyboard has not been activated. If you want to type, please first activate the keyboard by tapping on the input box on the screen.\n"
+                    prompt += f"- {action}({', '.join(value['arguments'])}): {value['description'](info_pool)}\n"
+            prompt += "NOTE: Unable to type. The keyboard has not been activated. To type, please activate the keyboard by tapping on an input box or using a shortcut, which includes tapping on an input box first.”\n"
         
         prompt += "\n"
         prompt += "#### Shortcuts ####\n"
         if info_pool.shortcuts != {}:
             prompt += "The shortcut functions are listed in the format of `name(arguments): description | Precondition: precondition` as follows:\n"
             for shortcut, value in info_pool.shortcuts.items():
-                prompt += f"{shortcut}({', '.join(value['arguments'])}): {value['description']} | Precondition: {value['precondition']}\n"
+                prompt += f"- {shortcut}({', '.join(value['arguments'])}): {value['description']} | Precondition: {value['precondition']}\n"
         else:
             prompt += "No shortcuts are available.\n"
         prompt += "\n"
@@ -380,13 +400,14 @@ class Executor(BaseAgent):
         prompt += "### Thought ###\n"
         prompt += "A detailed explanation of your rationale for the action you choose.\n\n"
         prompt += "### Action ###\n"
-        prompt += "Choose only one action or shortcut from the options above. Be sure to fill in all required arguments, such as text and coordinates (e.g., x and y), in the provided fields.\n"
+        prompt += "Choose only one action or shortcut from the options provided. "
+        prompt += "Use shortcuts whenever possible to expedite the process, but make sure that the precondition is met.\n"
         prompt += "You must provide your decision using a valid JSON format specifying the name and arguments of the action. For example, if you choose to tap at position (100, 200), you should write {\"name\":\"Tap\", \"arguments\":{\"x\":100, \"y\":100}}. If an action does not require arguments, such as Home, fill in null to the \"arguments\" field. Ensure that the argument keys match the action function's signature exactly.\n\n"
         prompt += "### Description ###\n"
         prompt += "A brief description of the chosen action and the expected outcome."
         return prompt
 
-    def execute_atomic_action(self, action: str, arguments: dict, **kwargs) -> None:
+    def execute_atomic_action(self, action: str, arguments: dict, info_pool: InfoPool, **kwargs) -> None:
         adb_path = self.adb
         
         if "Open_App".lower() == action.lower():
@@ -432,19 +453,24 @@ class Executor(BaseAgent):
         elif "Switch_App".lower() == action.lower():
             switch_app(adb_path)
             time.sleep(2)
+
+        # elif "Finish".lower() == action.lower():
+        #     info_pool.finish_thought = kwargs["thought"]
+        #     finish(info_pool)
+        #     time.sleep(2)
         
     def execute(self, action_str: str, info_pool: InfoPool, **kwargs) -> None:
         action_object = extract_json_object(action_str)
         if action_object is None:
             print("Error! Invalid JSON for executing action: ", action_str)
-            return
+            return None
         action, arguments = action_object["name"], action_object["arguments"]
         action = action.strip()
 
         # execute atomic action
         if action in ATOMIC_ACTION_SIGNITURES:
             print("Executing atomic action: ", action, arguments)
-            self.execute_atomic_action(action, arguments, **kwargs)
+            self.execute_atomic_action(action, arguments, info_pool=info_pool, **kwargs)
         # execute shortcut
         elif action in info_pool.shortcuts:
             print("Executing shortcut: ", action)
@@ -458,12 +484,18 @@ class Executor(BaseAgent):
                     for atomic_arg_key, short_cut_arg_key in atomic_action["arguments_map"].items():
                         atomic_action_args[atomic_arg_key] = arguments[short_cut_arg_key]
                 print(f"\t Executing sub-step {i}:", atomic_action_name, atomic_action_args, "...")
-                self.execute_atomic_action(atomic_action_name, atomic_action_args, **kwargs)
+                self.execute_atomic_action(atomic_action_name, atomic_action_args, info_pool=info_pool, **kwargs)
         else:
-            print("Error! Invalid action name: ", action)
-            return
+            if action.lower() in ["null", "none", "finish", "exit", "stop"]:
+                print("Agent choose to finish the task. Action: ", action)
+            else:
+                print("Error! Invalid action name: ", action)
+            info_pool.finish_thought = info_pool.last_action_thought
+            return None
+        
+        return action_object
 
-    def parse_response(self, response: str, info_pool: InfoPool) -> dict:
+    def parse_response(self, response: str) -> dict:
         thought = response.split("### Thought ###")[-1].split("### Action ###")[0].replace("\n", " ").replace("  ", " ").strip()
         action = response.split("### Action ###")[-1].split("### Description ###")[0].replace("\n", " ").replace("  ", " ").strip()
         description = response.split("### Description ###")[-1].replace("\n", " ").replace("  ", " ").strip()
@@ -505,7 +537,7 @@ class ActionReflector(BaseAgent):
         prompt += "\n\n"
 
         prompt += "### Screen Information Before the Action ###\n"
-        for clickable_info in info_pool.clickable_infos_pre:
+        for clickable_info in info_pool.perception_infos_pre:
             if clickable_info['text'] != "" and clickable_info['text'] != "icon: None" and clickable_info['coordinates'] != (0, 0):
                 prompt += f"{clickable_info['coordinates']}; {clickable_info['text']}\n"
         prompt += "\n"
@@ -518,7 +550,7 @@ class ActionReflector(BaseAgent):
 
 
         prompt += "### Screen Information After the Action ###\n"
-        for clickable_info in info_pool.clickable_infos_post:
+        for clickable_info in info_pool.perception_infos_post:
             if clickable_info['text'] != "" and clickable_info['text'] != "icon: None" and clickable_info['coordinates'] != (0, 0):
                 prompt += f"{clickable_info['coordinates']}; {clickable_info['text']}\n"
         prompt += "\n"
@@ -563,7 +595,7 @@ class ActionReflector(BaseAgent):
 class Notetaker(BaseAgent):
     def init_chat(self) -> list:
         operation_history = []
-        sysetm_prompt = "You are a helpful AI assistant for operating mobile phones. Your goal is to take notes of important content relevant to the user's request while navigating different pages."
+        sysetm_prompt = "You are a helpful AI assistant for operating mobile phones. Your goal is to take notes of important content relevant to the user's request."
         operation_history.append(["system", [{"type": "text", "text": sysetm_prompt}]])
         return operation_history
 
@@ -598,7 +630,7 @@ class Notetaker(BaseAgent):
         )
         prompt += "The extracted information is as follows:\n"
 
-        for clickable_info in info_pool.clickable_infos_post:
+        for clickable_info in info_pool.perception_infos_post:
             if clickable_info['text'] != "" and clickable_info['text'] != "icon: None" and clickable_info['coordinates'] != (0, 0):
                 prompt += f"{clickable_info['coordinates']}; {clickable_info['text']}\n"
         prompt += "\n"
@@ -609,11 +641,11 @@ class Notetaker(BaseAgent):
         prompt += "\n\n"
 
         prompt += "---\n"
-        prompt += "Carefully examine the current screen and progress status to determine if there are any important notes that need to be recorded. If you identify any critical information relevant to the user's request that is not yet recorded, make a note of it and update the existing important notes. \n\n"
+        prompt += "Carefully examine the information above to identify any important content that needs to be recorded. IMPORTANT: Do not take notes on low-level actions; only keep track of significant textual or visual information relevant to the user's request.\n\n"
 
         prompt += "Provide your output in the following format:\n"
         prompt += "### Important Notes ###\n"
-        prompt += "The updated important notes, combining the old and new ones.\n"
+        prompt += "The updated important notes, combining the old and new ones. If nothing new to record, copy the existing important notes.\n"
 
         return prompt
 
@@ -635,6 +667,7 @@ SHORTCUT_EXMPALE = """
     ]
 }
 """
+
 
 class KnowledgeReflector(BaseAgent):
     def init_chat(self) -> list:
@@ -662,7 +695,7 @@ class KnowledgeReflector(BaseAgent):
             prompt += f"{action}({', '.join(value['arguments'])}): {value['description'](info_pool)}\n"
 
         prompt += "---\n"
-        prompt = "### Current Task ###\n"
+        prompt += "### Current Task ###\n"
         prompt += f"{info_pool.instruction}\n\n"
 
         prompt += "### Overall Plan ###\n"
@@ -675,10 +708,10 @@ class KnowledgeReflector(BaseAgent):
         if info_pool.action_history != []:
             latest_actions = info_pool.action_history
             latest_summary = info_pool.summary_history
-            error_flags = info_pool.error_flags_action
+            action_outcomes = info_pool.action_outcomes
             error_descriptions = info_pool.error_descriptions
-            for act, summ, err, err_des in zip(latest_actions, latest_summary, error_flags, error_descriptions):
-                if not err:
+            for act, summ, outcome, err_des in zip(latest_actions, latest_summary, action_outcomes, error_descriptions):
+                if outcome == "A":
                     prompt += f"Action: {act} | Description: {summ} | Outcome: Successful\n"
                 else:
                     prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Error Description: {err_des}\n"
@@ -687,18 +720,23 @@ class KnowledgeReflector(BaseAgent):
             prompt += "No actions have been taken yet.\n\n"
 
         prompt += "---\n"
-        prompt += "Carefully reflect on the interaction history of the current task. Consider the following: (1) Are there any sequences of actions that could be consolidated into new \"shortcuts\" to improve efficiency? These shortcuts are subroutines consisting of a series of atomic actions that can be executed under specific preconditions. (2) Are there any general tips that might be useful for handling future tasks, such as advice on preventing certain common errors?\n\n"
+        prompt += "Carefully reflect on the interaction history of the current task. Consider the following:\n(1) Are there any sequences of actions that occurred repeatedly and can be consolidated into new \"shortcuts\" to improve efficiency? These shortcuts are subroutines consisting of a series of atomic actions that can be executed under specific preconditions.\n(2) Are there any general tips that might be useful for handling future tasks, such as advice on preventing certain common errors?\n\n"
 
-        prompt += "Provide your output in the following format containing two parts:\n"
+        prompt += "Provide your output in the following format containing two parts:\n\n"
+
         prompt += "### New Shortcut ###\n"
         prompt += "If you decide to create a new shortcut (not already in the existing shortcuts), provide your shortcut object in a valid JSON format which is detailed below. If not, put \"None\" here.\n"
         prompt += "A shortcut object contains the following fields: name, arguments, description, precondition, and atomic_action_sequence. The keys in the arguements need to be unique. The atomic_action_sequence is a list of dictionaries, each containing the name of an atomic action and a mapping of its atomic argument names to the shortcut's argument name. If an atomic action in the atomic_action_sequence does not take any arugments, set the `arguments_map` to an empty dict. \n"
-        prompt += f"Here is an example of a shortcut object: {SHORTCUT_EXMPALE}\n\n"
+        prompt += "IMPORTANT: The shortcut must ONLY include the Atomic Actions listed above. Create a new shortcut only if you are confident it will be useful in the future.\n"
+        prompt += f"Follow the following example to format the shortcut: {SHORTCUT_EXMPALE}\n\n"
 
-        prompt += "### New Tips ###\n"
-        prompt += "If you have any important new tips to share (not already in the existing tips), provide them here. If not, write \"None\" here.\n"
+        prompt += "### Updated Tips ###\n"
+        prompt += "If you have any important new tips to add (not already included in the existing tips), combine them with the current list. If there are no new tips, simply copy the existing tips here. Keep your tips concise and general. IMPORTANT: DO NOT create shortcut names that do not exist. Add new tips only if they are essential for future interactions.\n"
+        return prompt
 
     def add_new_shortcut(self, short_cut_str: str, info_pool: InfoPool) -> str:
+        if short_cut_str is None or short_cut_str != "None":
+            return
         short_cut_object = extract_json_object(short_cut_str)
         if short_cut_object is None:
             print("Error! Invalid JSON for adding new shortcut: ", short_cut_str)
@@ -709,9 +747,16 @@ class KnowledgeReflector(BaseAgent):
             return
         info_pool.shortcuts[short_cut_name] = short_cut_object
         print("Updated short_cuts:", info_pool.shortcuts)
+    
+    # def add_new_knowledge(self, new_tips: str, info_pool: InfoPool) -> str:
+    #     if new_tips is None or ("None" in new_tips and len(new_tips) < 10):
+    #         return
+    #     info_pool.additional_knowledge += "\n"
+    #     info_pool.additional_knowledge += new_tips
+    #     print("Updated tips:", info_pool.additional_knowledge)
 
     def parse_response(self, response: str) -> dict:
-        new_shortcut = extract_json_object(response.split("### New Shortcut ###")[-1].split("### New Tips ###")[0].replace("\n", " ").replace("  ", " ").strip())
-        new_tips = response.split("### New Tips ###")[-1].replace("\n", " ").replace("  ", " ").strip()
-        return {"new_shortcut": new_shortcut, "new_tips": new_tips}
+        new_shortcut = extract_json_object(response.split("### New Shortcut ###")[-1].split("### Updated Tips ###")[0].replace("\n", " ").replace("  ", " ").strip())
+        updated_tips = response.split("### Updated Tips ###")[-1].replace("\n", " ").replace("  ", " ").strip()
+        return {"new_shortcut": new_shortcut, "updated_tips": updated_tips}
 

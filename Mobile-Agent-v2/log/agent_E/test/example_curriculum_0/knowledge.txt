@@ -1,0 +1,1 @@
+If you want to type new text in a search box that already contains text you previously entered, make sure to clear it first by tapping the 'X' button.

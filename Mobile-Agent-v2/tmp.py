@@ -39,7 +39,11 @@ if __name__ == "__main__":
     # prompt = notetaker.get_prompt(info_pool)
     # print(prompt)
     
-    notetaker = ActionReflector()
+    # notetaker = ActionReflector()
+    # prompt = notetaker.get_prompt(info_pool)
+    # print(prompt)
+    
+    notetaker = KnowledgeReflector()
     prompt = notetaker.get_prompt(info_pool)
     print(prompt)
 

@@ -1,0 +1,19 @@
+[
+    {
+        "instruction": "Find the current weather in my city.",
+        "category": "information_research_and_summarization",
+        "type": "single_app",
+        "apps": [
+            "Google"
+        ]
+    },
+    {
+        "instruction": "Search for the top 3 trending news topics on X and write a short summary in Notes.",
+        "type": "multi_app",
+        "category": "information_research_and_summarization",
+        "apps": [
+            "X",
+            "Notes"
+        ]
+    }
+]
