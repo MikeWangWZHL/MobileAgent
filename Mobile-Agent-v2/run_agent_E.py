@@ -72,6 +72,9 @@ INIT_TIPS = """If you want to type new text in a search box that already contain
 # # existing knowledge
 # knowledge_path = None # knowledge.txt file create by the agent from previous runs
 
+TEMP_DIR = "temp"
+SCREENSHOT_DIR = "screenshot"
+
 
 # # Reflection Setting: If you want to improve the operating speed, you can disable the reflection agent. This may reduce the success rate.
 # reflection_switch = True
@@ -102,13 +105,14 @@ def draw_coordinates_on_image(image_path, coordinates):
     return output_image_path
 
 
-def crop(image, box, i):
+def crop(image, box, i, temp_file=TEMP_DIR):
     image = Image.open(image)
     x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
     if x1 >= x2-10 or y1 >= y2-10:
         return
     cropped_image = image.crop((x1, y1, x2, y2))
-    cropped_image.save(f"./temp/{i}.jpg")
+    save_path = os.path.join(temp_file, f"{i}.jpg")
+    cropped_image.save(save_path)
 
 
 def generate_local(tokenizer, model, image_file, query):
@@ -298,7 +302,7 @@ class Perceptor:
             self.vlm_model, self.vlm_tokenizer = load_perception_models(**perception_args)
         self.adb_path = adb_path
 
-    def get_perception_infos(self, screenshot_file, temp_file="temp"):
+    def get_perception_infos(self, screenshot_file, temp_file=TEMP_DIR):
         get_screenshot(self.adb_path)
         
         width, height = Image.open(screenshot_file).size
@@ -328,7 +332,7 @@ class Perceptor:
                 image_id.append(i)
 
         for i in range(len(image_box)):
-            crop(screenshot_file, image_box[i], image_id[i])
+            crop(screenshot_file, image_box[i], image_id[i], temp_file=temp_file)
 
         images = get_all_files_in_folder(temp_file)
         if len(images) > 0:
@@ -441,15 +445,13 @@ def run_single_task(
     )
 
     ### temp dir ###
-    temp_file = "temp"
-    screenshot = "screenshot"
-    if not os.path.exists(temp_file):
-        os.mkdir(temp_file)
+    if not os.path.exists(TEMP_DIR):
+        os.mkdir(TEMP_DIR)
     else:
-        shutil.rmtree(temp_file)
-        os.mkdir(temp_file)
-    if not os.path.exists(screenshot):
-        os.mkdir(screenshot)
+        shutil.rmtree(TEMP_DIR)
+        os.mkdir(TEMP_DIR)
+    if not os.path.exists(SCREENSHOT_DIR):
+        os.mkdir(SCREENSHOT_DIR)
 
     ### Init Agents ###
     if perceptor is None:
@@ -481,12 +483,12 @@ def run_single_task(
     iter = 0
     while True:
         iter += 1
-        if iter == 1:
-            ## first perception ##
+        ## do perception if (1) the first perception; (2) previous action has error ##
+        if iter == 1 or info_pool.action_outcomes[-1] in ["B", "C"]:
             screenshot_file = "./screenshot/screenshot.jpg"
-            perception_infos, width, height = perceptor.get_perception_infos(screenshot_file, temp_file=temp_file)
-            shutil.rmtree(temp_file)
-            os.mkdir(temp_file)
+            perception_infos, width, height = perceptor.get_perception_infos(screenshot_file, temp_file=TEMP_DIR)
+            shutil.rmtree(TEMP_DIR)
+            os.mkdir(TEMP_DIR)
             
             keyboard = False
             keyboard_height_limit = 0.9 * height
@@ -511,6 +513,7 @@ def run_single_task(
             with open(log_json_path, "w") as f:
                 json.dump(steps, f, indent=4)
             ##
+        ## otherwise reuse the previous perception info of the updated state ##
         
         ### get perception infos ###
         info_pool.perception_infos_pre = perception_infos
@@ -641,9 +644,9 @@ def run_single_task(
             os.remove(last_screenshot_file)
         os.rename(screenshot_file, last_screenshot_file)
         
-        perception_infos, width, height = perceptor.get_perception_infos(screenshot_file, temp_file=temp_file)
-        shutil.rmtree(temp_file)
-        os.mkdir(temp_file)
+        perception_infos, width, height = perceptor.get_perception_infos(screenshot_file, temp_file=TEMP_DIR)
+        shutil.rmtree(TEMP_DIR)
+        os.mkdir(TEMP_DIR)
         
         keyboard = False
         for perception_info in perception_infos:
@@ -681,6 +684,7 @@ def run_single_task(
             parsed_result_action_reflect['error_description'], 
             parsed_result_action_reflect['progress_status']
         )
+        info_pool.progress_status_history.append(progress_status)
 
         if "A" in outcome: # Successful. The result of the last action meets the expectation.
             action_outcome = "A"
@@ -746,14 +750,16 @@ def run_single_task(
                 json.dump(steps, f, indent=4)
 
         elif action_outcome == "B":
-            # backed to the previous state, update perception back to the previous state
-            perception_infos = copy.deepcopy(last_perception_infos)
-            keyboard = last_keyboard
-            os.remove(screenshot_file) # remove the post screenshot
-            os.rename(last_screenshot_file, screenshot_file) # rename the last screenshot to the current screenshot
+            # # backed to the previous state, update perception back to the previous state
+            # perception_infos = copy.deepcopy(last_perception_infos)
+            # keyboard = last_keyboard
+            # os.remove(screenshot_file) # remove the post screenshot
+            # os.rename(last_screenshot_file, screenshot_file) # rename the last screenshot to the current screenshot
+            os.remove(last_screenshot_file)
+            # redo the perception at next step
 
         elif action_outcome == "C":
-            pass # do nothing
+            os.remove(last_screenshot_file)
 
         
         pdb_hook()

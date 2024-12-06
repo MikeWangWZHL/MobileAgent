@@ -1,9 +1,11 @@
 # python run_agent_E.py --instruction "Open Notes and type hello world"
 
+python run_agent_E.py --instruction "Search for the top 3 trending news topics on \"X\" and write a short summary in the \"Notes\" APP."
+
 # python run_agent_E.py \
 #     --tasks_json data/seq_task/example.json \
 #     --setting "individual"
 
-python run_agent_E.py \
-    --tasks_json data/seq_task/example.json \
-    --setting "curriculum"
+# python run_agent_E.py \
+#     --tasks_json data/seq_task/example.json \
+#     --setting "curriculum"

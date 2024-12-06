@@ -305,6 +305,9 @@ class Executor(BaseAgent):
         prompt = "### User Instruction ###\n"
         prompt += f"{info_pool.instruction}\n\n"
 
+        prompt += "### Overall Plan ###\n"
+        prompt += f"{info_pool.plan}\n\n"
+
         prompt += "### Progress Status ###\n"
         if info_pool.progress_status != "":
             prompt += f"{info_pool.progress_status}\n\n"
@@ -400,7 +403,7 @@ class Executor(BaseAgent):
         prompt += "### Thought ###\n"
         prompt += "A detailed explanation of your rationale for the action you choose.\n\n"
         prompt += "### Action ###\n"
-        prompt += "Choose only one action or shortcut from the options provided. "
+        prompt += "Choose only one action or shortcut from the options provided. Do NOT return invalid actions like null or stop. "
         prompt += "Use shortcuts whenever possible to expedite the process, but make sure that the precondition is met.\n"
         prompt += "You must provide your decision using a valid JSON format specifying the name and arguments of the action. For example, if you choose to tap at position (100, 200), you should write {\"name\":\"Tap\", \"arguments\":{\"x\":100, \"y\":100}}. If an action does not require arguments, such as Home, fill in null to the \"arguments\" field. Ensure that the argument keys match the action function's signature exactly.\n\n"
         prompt += "### Description ###\n"
