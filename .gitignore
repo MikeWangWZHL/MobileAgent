@@ -8,3 +8,7 @@ __pycache__/
 *openai_key*
 *qwen_key*
 *api_key*
+*/log/*
+*/usage/*
+Mobile-Agent-v2/log/*
+Mobile-Agent-v2/usage/*

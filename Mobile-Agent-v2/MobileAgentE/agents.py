@@ -374,6 +374,13 @@ class Executor(BaseAgent):
             prompt += "From previous experience interacting with the device, you have collected the following tips that might be useful for deciding what to do next:\n"
             prompt += f"{info_pool.additional_knowledge}\n\n"
 
+        prompt += "### Important Notes ###\n"
+        if info_pool.important_notes != "":
+            prompt += "Here are some potentially important content relevant to the user's request you already recorded:\n"
+            prompt += f"{info_pool.important_notes}\n\n"
+        else:
+            prompt += "No important notes recorded.\n\n"
+
         prompt += "---\n"
         prompt += "Carefully examine all the information provided above and decide on the next action to perform. If you notice an unsolved error in the previous action, think as a human user and attempt to rectify them. You must choose your action from one of the atomic actions or the shortcuts. The shortcuts are predefined sequences of actions that can be used to speed up the process. Each shortcut has a precondition specifying when it is suitable to use. If you plan to use a shortcut, ensure the current phone state satisfies its precondition first.\n\n"
         

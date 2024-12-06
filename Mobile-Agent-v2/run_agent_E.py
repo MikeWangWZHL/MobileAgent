@@ -46,6 +46,8 @@ OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 # OPENAI_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_school_ecole", "r").read()
 OPENAI_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_taobao", "r").read()
 
+USAGE_TRACKING_JSONL = "usage/from_dec_5.jsonl"
+
 # Reasoning GPT model
 REASONING_MODEL = "gpt-4o-2024-11-20"
 
@@ -64,7 +66,9 @@ QWEN_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_ke
 # 2.	To exit an app, use the action \"Home\".
 # 3.	To enter new text in an input box with existing text, clear it first by tapping the \"X\" button.
 # """
-INIT_TIPS = """If you want to type new text in a search box that already contains text you previously entered, make sure to clear it first by tapping the 'X' button."""
+INIT_TIPS = """1. By default, no APPs are opened in the background.
+2. If you want to type new text in a search box that already contains text you previously entered, make sure to clear it first by tapping the 'X' button.
+"""
 
 # # existing shortcuts
 # shortcuts_path = None # shortcuts.json file create by the agent from previous runs
@@ -74,6 +78,8 @@ INIT_TIPS = """If you want to type new text in a search box that already contain
 
 TEMP_DIR = "temp"
 SCREENSHOT_DIR = "screenshot"
+
+
 
 
 # # Reflection Setting: If you want to improve the operating speed, you can disable the reflection agent. This may reduce the success rate.
@@ -539,7 +545,7 @@ def run_single_task(
         prompt_planning = manager.get_prompt(info_pool)
         chat_planning = manager.init_chat()
         chat_planning = add_response("user", prompt_planning, chat_planning, image=screenshot_file)
-        output_planning = inference_chat(chat_planning, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY)
+        output_planning = inference_chat(chat_planning, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
         parsed_result_planning = manager.parse_response(output_planning)
         
         info_pool.plan = parsed_result_planning['plan']
@@ -579,7 +585,7 @@ def run_single_task(
                 prompt_knowledge = knowledge_reflector.get_prompt(info_pool)
                 chat_knowledge = knowledge_reflector.init_chat()
                 chat_knowledge = add_response("user", prompt_knowledge, chat_knowledge, image=None)
-                output_knowledge = inference_chat(chat_knowledge, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY)
+                output_knowledge = inference_chat(chat_knowledge, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
                 parsed_result_knowledge = knowledge_reflector.parse_response(output_knowledge)
                 new_shortcut_str, updated_tips = parsed_result_knowledge['new_shortcut'], parsed_result_knowledge['updated_tips']
                 if new_shortcut_str != "None" and new_shortcut_str is not None:
@@ -597,7 +603,7 @@ def run_single_task(
         prompt_action = executor.get_prompt(info_pool)
         chat_action = executor.init_chat()
         chat_action = add_response("user", prompt_action, chat_action, image=screenshot_file)
-        output_action = inference_chat(chat_action, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY)
+        output_action = inference_chat(chat_action, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
         parsed_result_action = executor.parse_response(output_action)
         action_thought, action_object_str, action_description = parsed_result_action['thought'], parsed_result_action['action'], parsed_result_action['description']
 
@@ -677,7 +683,7 @@ def run_single_task(
         prompt_action_reflect = action_reflector.get_prompt(info_pool)
         chat_action_reflect = action_reflector.init_chat()
         chat_action_reflect = add_response_two_image("user", prompt_action_reflect, chat_action_reflect, [last_screenshot_file, screenshot_file])
-        output_action_reflect = inference_chat(chat_action_reflect, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY)
+        output_action_reflect = inference_chat(chat_action_reflect, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
         parsed_result_action_reflect = action_reflector.parse_response(output_action_reflect)
         outcome, error_description, progress_status = (
             parsed_result_action_reflect['outcome'], 
@@ -734,7 +740,7 @@ def run_single_task(
             prompt_note = notetaker.get_prompt(info_pool)
             chat_note = notetaker.init_chat()
             chat_note = add_response("user", prompt_note, chat_note, image=screenshot_file) # new screenshot
-            note_output = inference_chat(chat_note, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY)
+            note_output = inference_chat(chat_note, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
             parsed_result_note = notetaker.parse_response(note_output)
             important_notes = parsed_result_note['important_notes']
             info_pool.important_notes = important_notes
