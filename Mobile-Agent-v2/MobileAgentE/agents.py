@@ -87,6 +87,9 @@ def extract_json_object(text, json_type="dict"):
     - dict or list: The extracted JSON object, or None if parsing fails.
     """
     try:
+        if "//" in text:
+            # Remove comments starting with //
+            text = re.sub(r'//.*', '', text)
         # Try to parse the entire text as JSON
         return json.loads(text)
     except json.JSONDecodeError:
@@ -158,6 +161,9 @@ class InfoPool:
     current_subgoal: str = ""
     prev_subgoal: str = ""
 
+    # future tasks
+    future_tasks: list = field(default_factory=list)
+
 
 
 class BaseAgent(ABC):
@@ -188,6 +194,15 @@ class Manager(BaseAgent):
             # first time planning
             prompt += "---\n"
             prompt += "Think step by step and make an high-level plan to achieve the user's instruction. If the request is complex, break it down into subgoals. If the request involves exploration, include concrete subgoals to quantify the investigation steps. The screenshot displays the starting state of the phone.\n\n"
+            
+            if info_pool.shortcuts != {}:
+                prompt += "### Available Shortcuts from Past Experience ###\n"
+                prompt += "We additionally provide some shortcut functionalities based on past experience. These shortcuts are predefined sequences of operations that might make the plan more efficient. Each shortcut includes a precondition specifying when it is suitable for use. If your plan implies the use of certain shortcuts, ensure that the precondition is fulfilled before using them. Note that you don't necessarily need to include the names of these shortcuts in your high-level plan; they are provided as a reference.\n"
+                for shortcut, value in info_pool.shortcuts.items():
+                    prompt += f"- {shortcut}: {value['description']} | Precondition: {value['precondition']}\n"
+                prompt += "\n"
+            prompt += "---\n"
+
             prompt += "Provide your output in the following format which contains three parts:\n\n"
             prompt += "### Thought ###\n"
             prompt += "A detailed explanation of your rationale for the plan and subgoals.\n\n"
@@ -215,12 +230,20 @@ class Manager(BaseAgent):
                 prompt += "You have encountered some errors that has not been resolved for three consecutive attempts. Here are some logs:\n"
                 for i, (act, summ, err_des) in enumerate(zip(info_pool.action_history, info_pool.summary_history, info_pool.error_descriptions)):
                     prompt += f"- Attempt {i+1}: Action: {act} | Description: {summ} | Outcome: Failed | Error Description: {err_des}\n"
+
             prompt += "---\n"
             prompt += "The sections above provide an overview of the plan you are following, the current subgoal you are working on, the overall progress made, and any important notes you have recorded. The screenshot displays the current state of the phone.\n"
             prompt += "Carefully assess the current status to determine if the task has been fully completed. If the user's request involves exploration, ensure you have conducted sufficient investigation. If you are confident that no further actions are required, mark the task as \"Finished\" in your output. If the task is not finished, outline the next steps. If you are stuck with errors, think step by step about whether the overall plan needs to be revised to address the error.\n"
             prompt += "NOTE: If the current situation prevents proceeding with the original plan or requires clarification from the user, make reasonable assumptions and revise the plan accordingly. Act as though you are the user in such cases.\n\n"
 
-
+            if info_pool.shortcuts != {}:
+                prompt += "### Available Shortcuts from Past Experience ###\n"
+                prompt += "We additionally provide some shortcut functionalities based on past experience. These shortcuts are predefined sequences of operations that might make the plan more efficient. Each shortcut includes a precondition specifying when it is suitable for use. If your plan implies the use of certain shortcuts, ensure that the precondition is fulfilled before using them. Note that you don't necessarily need to include the names of these shortcuts in your high-level plan; they are provided only as a reference.\n"
+                for shortcut, value in info_pool.shortcuts.items():
+                    prompt += f"- {shortcut}: {value['description']} | Precondition: {value['precondition']}\n"
+                prompt += "\n"
+            
+            prompt += "---\n"
             prompt += "Provide your output in the following format, which contains three parts:\n\n"
             prompt += "### Thought ###\n"
             prompt += "Provide a detailed explanation of your rationale for the plan and subgoals.\n\n"
@@ -408,7 +431,7 @@ class Executor(BaseAgent):
         prompt += "---\n"
         prompt += "Provide your output in the following format, which contains three parts:\n"
         prompt += "### Thought ###\n"
-        prompt += "A detailed explanation of your rationale for the action you choose.\n\n"
+        prompt += "Provide a detailed explanation of your rationale for the chosen action. IMPORTANT: If you decide to use a shortcut, first verify that its precondition is met in the current phone state. For example, if the shortcut requires the phone to be at the Home screen, check whether the current screenshot shows the Home screen. If not, perform the appropriate atomic actions instead.\n\n"
         prompt += "### Action ###\n"
         prompt += "Choose only one action or shortcut from the options provided. Do NOT return invalid actions like null or stop. "
         prompt += "Use shortcuts whenever possible to expedite the process, but make sure that the precondition is met.\n"
@@ -417,7 +440,7 @@ class Executor(BaseAgent):
         prompt += "A brief description of the chosen action and the expected outcome."
         return prompt
 
-    def execute_atomic_action(self, action: str, arguments: dict, info_pool: InfoPool, **kwargs) -> None:
+    def execute_atomic_action(self, action: str, arguments: dict, **kwargs) -> None:
         adb_path = self.adb
         
         if "Open_App".lower() == action.lower():
@@ -446,7 +469,7 @@ class Executor(BaseAgent):
         elif "Type".lower() == action.lower():
             text = arguments["text"]
             type(adb_path, text)
-            time.sleep(1)
+            time.sleep(3)
 
         elif "Enter".lower() == action.lower():
             enter(adb_path)
@@ -454,15 +477,15 @@ class Executor(BaseAgent):
 
         elif "Back".lower() == action.lower():
             back(adb_path)
-            time.sleep(2)
+            time.sleep(3)
         
         elif "Home".lower() == action.lower():
             home(adb_path)
-            time.sleep(2)
+            time.sleep(3)
         
         elif "Switch_App".lower() == action.lower():
             switch_app(adb_path)
-            time.sleep(2)
+            time.sleep(3)
 
         # elif "Finish".lower() == action.lower():
         #     info_pool.finish_thought = kwargs["thought"]
@@ -473,7 +496,7 @@ class Executor(BaseAgent):
         action_object = extract_json_object(action_str)
         if action_object is None:
             print("Error! Invalid JSON for executing action: ", action_str)
-            return None
+            return None, 0, None
         action, arguments = action_object["name"], action_object["arguments"]
         action = action.strip()
 
@@ -481,29 +504,41 @@ class Executor(BaseAgent):
         if action in ATOMIC_ACTION_SIGNITURES:
             print("Executing atomic action: ", action, arguments)
             self.execute_atomic_action(action, arguments, info_pool=info_pool, **kwargs)
+            return action_object, 1, None # number of atomic actions executed
         # execute shortcut
         elif action in info_pool.shortcuts:
             print("Executing shortcut: ", action)
             shortcut = info_pool.shortcuts[action]
             for i, atomic_action in enumerate(shortcut["atomic_action_sequence"]):
-                atomic_action_name = atomic_action["name"]
-                if atomic_action["arguments_map"] is None or len(atomic_action["arguments_map"]) == 0:
-                    atomic_action_args = None
-                else:
-                    atomic_action_args = {}
-                    for atomic_arg_key, short_cut_arg_key in atomic_action["arguments_map"].items():
-                        atomic_action_args[atomic_arg_key] = arguments[short_cut_arg_key]
-                print(f"\t Executing sub-step {i}:", atomic_action_name, atomic_action_args, "...")
-                self.execute_atomic_action(atomic_action_name, atomic_action_args, info_pool=info_pool, **kwargs)
+                try:
+                    atomic_action_name = atomic_action["name"]
+                    if atomic_action["arguments_map"] is None or len(atomic_action["arguments_map"]) == 0:
+                        atomic_action_args = None
+                    else:
+                        atomic_action_args = {}
+                        for atomic_arg_key, value in atomic_action["arguments_map"].items():
+                            if value in arguments: # if the mapped key is in the shortcut arguments
+                                atomic_action_args[atomic_arg_key] = arguments[value]
+                            else: # if not: the values are directly passed
+                                atomic_action_args[atomic_arg_key] = value
+                    print(f"\t Executing sub-step {i}:", atomic_action_name, atomic_action_args, "...")
+                    self.execute_atomic_action(atomic_action_name, atomic_action_args, info_pool=info_pool, **kwargs)
+                except Exception as e:
+                    e += f"\nError in executing step {i}: {atomic_action_name} {atomic_action_args}"
+                    print("Error in executing shortcut: ", action, e)
+                    # print("Fall back to Home screen...")
+                    # home(self.adb)
+                    return action_object, i, e
+            return action_object, len(shortcut["atomic_action_sequence"]), None
         else:
             if action.lower() in ["null", "none", "finish", "exit", "stop"]:
                 print("Agent choose to finish the task. Action: ", action)
             else:
                 print("Error! Invalid action name: ", action)
             info_pool.finish_thought = info_pool.last_action_thought
-            return None
+            return None, 0, None
         
-        return action_object
+        # return action_object, 1
 
     def parse_response(self, response: str) -> dict:
         thought = response.split("### Thought ###")[-1].split("### Action ###")[0].replace("\n", " ").replace("  ", " ").strip()
@@ -696,7 +731,7 @@ class KnowledgeReflector(BaseAgent):
         prompt += "### Existing Shortcuts from Past Experience ###\n"
         if info_pool.shortcuts != {}:
             for shortcut, value in info_pool.shortcuts.items():
-                prompt += f"{shortcut}({', '.join(value['arguments'])}): {value['description']} | Precondition: {value['precondition']}\n"
+                prompt += f"- {shortcut}({', '.join(value['arguments'])}): {value['description']} | Precondition: {value['precondition']}\n"
         else:
             prompt += "No shortcuts are provided.\n"
 
@@ -729,23 +764,32 @@ class KnowledgeReflector(BaseAgent):
         else:
             prompt += "No actions have been taken yet.\n\n"
 
+        if len(info_pool.future_tasks) > 0:
+            prompt += "---\n"
+            # if the setting provides future tasks explicitly
+            prompt += "### Future Tasks ###\n"
+            prompt += "Here are some tasks that you might be asked to do in the future:\n"
+            for task in info_pool.future_tasks:
+                prompt += f"- {task}\n"
+            prompt += "\n"
+
         prompt += "---\n"
-        prompt += "Carefully reflect on the interaction history of the current task. Consider the following:\n(1) Are there any sequences of actions that occurred repeatedly and can be consolidated into new \"shortcuts\" to improve efficiency? These shortcuts are subroutines consisting of a series of atomic actions that can be executed under specific preconditions.\n(2) Are there any general tips that might be useful for handling future tasks, such as advice on preventing certain common errors?\n\n"
+        prompt += "Carefully reflect on the interaction history of the current task. Consider the following:\n(1) Are there any sequences of actions that occurred repeatedly and can be consolidated into new \"shortcuts\" to improve efficiency for future tasks? These shortcuts are subroutines consisting of a series of atomic actions that can be executed under specific preconditions.\n(2) Are there any general tips that might be useful for handling future tasks, such as advice on preventing certain common errors?\n\n"
 
         prompt += "Provide your output in the following format containing two parts:\n\n"
 
         prompt += "### New Shortcut ###\n"
         prompt += "If you decide to create a new shortcut (not already in the existing shortcuts), provide your shortcut object in a valid JSON format which is detailed below. If not, put \"None\" here.\n"
         prompt += "A shortcut object contains the following fields: name, arguments, description, precondition, and atomic_action_sequence. The keys in the arguements need to be unique. The atomic_action_sequence is a list of dictionaries, each containing the name of an atomic action and a mapping of its atomic argument names to the shortcut's argument name. If an atomic action in the atomic_action_sequence does not take any arugments, set the `arguments_map` to an empty dict. \n"
-        prompt += "IMPORTANT: The shortcut must ONLY include the Atomic Actions listed above. Create a new shortcut only if you are confident it will be useful in the future.\n"
-        prompt += f"Follow the following example to format the shortcut: {SHORTCUT_EXMPALE}\n\n"
+        prompt += "IMPORTANT: The shortcut must ONLY include the Atomic Actions listed above. Create a new shortcut only if you are confident it will be useful in the future. Ensure that duplicated shortcuts with overly similar atomic action sequences are not included.\n"
+        prompt += f"Follow the example below to format the shortcut. Avoid adding comments that could cause errors with json.loads().\n {SHORTCUT_EXMPALE}\n\n"
 
         prompt += "### Updated Tips ###\n"
         prompt += "If you have any important new tips to add (not already included in the existing tips), combine them with the current list. If there are no new tips, simply copy the existing tips here. Keep your tips concise and general. IMPORTANT: DO NOT create shortcut names that do not exist. Add new tips only if they are essential for future interactions.\n"
         return prompt
 
     def add_new_shortcut(self, short_cut_str: str, info_pool: InfoPool) -> str:
-        if short_cut_str is None or short_cut_str != "None":
+        if short_cut_str is None or short_cut_str == "None":
             return
         short_cut_object = extract_json_object(short_cut_str)
         if short_cut_object is None:
@@ -766,7 +810,7 @@ class KnowledgeReflector(BaseAgent):
     #     print("Updated tips:", info_pool.additional_knowledge)
 
     def parse_response(self, response: str) -> dict:
-        new_shortcut = extract_json_object(response.split("### New Shortcut ###")[-1].split("### Updated Tips ###")[0].replace("\n", " ").replace("  ", " ").strip())
+        new_shortcut = response.split("### New Shortcut ###")[-1].split("### Updated Tips ###")[0].replace("\n", " ").replace("  ", " ").strip()
         updated_tips = response.split("### Updated Tips ###")[-1].replace("\n", " ").replace("  ", " ").strip()
         return {"new_shortcut": new_shortcut, "updated_tips": updated_tips}
 

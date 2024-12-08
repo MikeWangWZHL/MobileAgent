@@ -8,13 +8,10 @@ from PIL import Image, ImageDraw
 from MobileAgentE.api import inference_chat
 from MobileAgentE.text_localization import ocr
 from MobileAgentE.icon_localization import det
-from MobileAgentE.controller import get_screenshot, back, clear_background_and_back_to_home
+from MobileAgentE.controller import get_screenshot, back, clear_background_and_back_to_home, clear_notes
 from MobileAgentE.agents import InfoPool, Manager, Executor, Notetaker, ActionReflector, KnowledgeReflector, INIT_SHORTCUTS
 from MobileAgentE.agents import add_response, add_response_two_image
 from MobileAgentE.agents import ATOMIC_ACTION_SIGNITURES
-# from MobileAgent.prompt import get_action_prompt, get_reflect_prompt, get_memory_prompt, get_process_prompt
-# from MobileAgentE.prompt_v2 import get_action_prompt, get_reflect_prompt, get_memory_prompt, get_process_prompt
-# from MobileAgentE.chat import init_action_chat, init_reflect_chat, init_memory_chat, add_response, add_response_two_image
 
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
@@ -24,6 +21,7 @@ from dashscope import MultiModalConversation
 import dashscope
 import concurrent
 import json
+from dataclasses import dataclass, field, asdict
 
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -31,12 +29,6 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 ####################################### Edit your Setting #########################################
 # Your ADB path
 ADB_PATH = "/Users/wangz3/Desktop/vlm_agent_project/platform-tools/adb"
-
-# Your instruction
-# instruction = "Find the best reviewed Korean restaurant in my area that is within 10min drive and opens late until 10pm. Provide a list of top 3 restaurants with their addresses and phone numbers."
-# instruction = "Find the best reviewed Korean restaurant in my area that is within 10min drive and opens late until 10pm."
-instruction = "Find a good bargin for a used iphone 16 on ebay. The phone should be in good condition and unlocked. Put at least three sharable links to Notes for me to review."
-# run_name = "test"
 
 # Your GPT-4o API URL
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
@@ -62,25 +54,16 @@ QWEN_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_ke
 # QWEN_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_key_from_xi", "r").read()
 
 # # You can add operational knowledge to help Agent operate more accurately.
-# user_provided_knowledge = """1.	To open an app, use the action \"Open_App\".
-# 2.	To exit an app, use the action \"Home\".
-# 3.	To enter new text in an input box with existing text, clear it first by tapping the \"X\" button.
-# """
 INIT_TIPS = """1. By default, no APPs are opened in the background.
-2. If you want to type new text in a search box that already contains text you previously entered, make sure to clear it first by tapping the 'X' button.
+2. Screenshots may show partial text in text boxes from your previous input; this does not count as an error.
+3. When creating new Notes, you do not need to enter a title unless the user specifically requests it.
 """
+# 2. If you want to type new text in a search box that already contains text you previously entered, make sure to clear it first by tapping the 'X' button.
 
-# # existing shortcuts
-# shortcuts_path = None # shortcuts.json file create by the agent from previous runs
-
-# # existing knowledge
-# knowledge_path = None # knowledge.txt file create by the agent from previous runs
+EVOLVE_FREQ = 5 # how often the agent evolves its knowledge; in iterations
 
 TEMP_DIR = "temp"
 SCREENSHOT_DIR = "screenshot"
-
-
-
 
 # # Reflection Setting: If you want to improve the operating speed, you can disable the reflection agent. This may reduce the success rate.
 # reflection_switch = True
@@ -394,6 +377,7 @@ def finish(
 
 def run_single_task(
     instruction,
+    future_tasks=[],
     run_name="test",
     log_root="log/agent_E",
     task_id=None,
@@ -403,18 +387,23 @@ def run_single_task(
     persistent_shortcuts_path=None, # cross tasks
     reset_phone_state=True,
     perceptor: Perceptor = None,
-    perception_args=DEFAULT_PERCEPTION_ARGS
+    perception_args=DEFAULT_PERCEPTION_ARGS,
+    max_itr=None,
+    overwrite_log_dir=False,
 ):
 
     ### reset the phone status ###
     if reset_phone_state:
         print("INFO: Reseting the phone states to Home and clear background apps ...\n")
         clear_background_and_back_to_home(ADB_PATH)
+        # clear_notes(ADB_PATH)
 
     ### set up log dir ###
     if task_id is None:
         task_id = time.strftime("%Y%m%d-%H%M%S")
     log_dir = f"{log_root}/{run_name}/{task_id}"
+    if os.path.exists(log_dir) and not overwrite_log_dir:
+        raise ValueError("The log dir already exists. And overwrite_log_dir is set to False.")
     os.makedirs(f"{log_dir}/screenshots", exist_ok=True)
     log_json_path = f"{log_dir}/steps.json"
     
@@ -424,9 +413,9 @@ def run_single_task(
 
     ### Init Information Pool ###
     if shortcuts_path is not None and persistent_shortcuts_path is not None and shortcuts_path != persistent_shortcuts_path:
-        raise ValueError("You should use the same path for shortcuts_path and persistent_shortcuts_path.")
+        raise ValueError("You cannot specify different shortcuts_path and persistent_shortcuts_path.")
     if knowledge_path is not None and persistent_knowledge_path is not None and knowledge_path != persistent_knowledge_path:
-        raise ValueError("You should use the same path for knowledge_path and persistent_knowledge_path.")
+        raise ValueError("You cannot specify different knowledge_path and persistent_knowledge_path.")
     
     if shortcuts_path:
         initial_shortcuts = json.load(open(shortcuts_path, "r")) # load agent collected shortcuts
@@ -445,9 +434,10 @@ def run_single_task(
     print("INFO: Initial knowledge:", additional_knowledge)
 
     info_pool = InfoPool(
-        instruction=instruction,
+        instruction = instruction,
         shortcuts = initial_shortcuts,
         additional_knowledge = additional_knowledge, # initial knowledge from user
+        future_tasks = future_tasks,
     )
 
     ### temp dir ###
@@ -479,19 +469,41 @@ def run_single_task(
     steps = []
     steps.append({
         "step": 0,
-        "step_type": "input",
+        "operation": "init",
         "instruction": instruction,
-        "shortcuts": initial_shortcuts,
-        "knowledge": additional_knowledge,
+        "task_id": task_id,
         "run_name": run_name,
+        "max_itr": max_itr,
+        "future_tasks": future_tasks,
+        "log_root": log_root,
+        "knowledge_path": knowledge_path,
+        "shortcuts_path": shortcuts_path,
+        "persistent_knowledge_path": persistent_knowledge_path,
+        "persistent_shortcuts_path": persistent_shortcuts_path,
+        "reset_phone_state": reset_phone_state,
+        "perception_args": perception_args,
+        "init_info_pool": asdict(info_pool),
     })
 
     iter = 0
     while True:
         iter += 1
+
+        ## max iteration stop ##
+        if max_itr is not None and iter > max_itr:
+            print("Max iteration reached. Stopping...")
+            steps.append({
+                "step": iter,
+                "operation": "finish",
+                "finish_flag": "max_iteration",
+                "final_info_pool": asdict(info_pool),
+            })
+            return
+
         ## do perception if (1) the first perception; (2) previous action has error ##
         if iter == 1 or info_pool.action_outcomes[-1] in ["B", "C"]:
             screenshot_file = "./screenshot/screenshot.jpg"
+            print("\n### Perceptor ... ###\n")
             perception_infos, width, height = perceptor.get_perception_infos(screenshot_file, temp_file=TEMP_DIR)
             shutil.rmtree(TEMP_DIR)
             os.mkdir(TEMP_DIR)
@@ -526,7 +538,7 @@ def run_single_task(
         info_pool.keyboard_pre = keyboard
 
         ### Manager: High-level Planning ###
-
+        print("\n### Manager ... ###\n")
         ## check if stuck with errors for a long time ##
         # if so need to think about the plan again
         info_pool.error_flag_plan = False
@@ -565,22 +577,11 @@ def run_single_task(
         pdb_hook()
         ###
 
-        ### Stopping by planner ###
-        if "Finished" in info_pool.current_subgoal.strip():
-            info_pool.finish_thought = parsed_result_planning['thought']
-            finish(
-                info_pool,
-                persistent_knowledge_path = persistent_knowledge_path,
-                persistent_shortcuts_path = persistent_shortcuts_path
-            )
-            return
-
-
         ### Knowledge Reflection: Periodicly Update Knowledge / Creating Shortcuts for Self-Evolving ###
-        # if a subgoal is completed and every 5 iterations, update the knowledge
-        knowledge_accum_k = 5
+        # if a subgoal is completed and every EVOLVE_FREQ iterations, or at the end of each task, update the knowledge
         if len(info_pool.action_outcomes) > 0:
-            if info_pool.action_outcomes[-1] == "A" and iter % knowledge_accum_k == 0:
+            if (info_pool.action_outcomes[-1] == "A" and iter % EVOLVE_FREQ == 0) or ("Finished" in info_pool.current_subgoal.strip()):
+                print("\n### Knowledge Reflector ... ###\n")
                 print("Updating knowledge...")
                 prompt_knowledge = knowledge_reflector.get_prompt(info_pool)
                 chat_knowledge = knowledge_reflector.init_chat()
@@ -591,15 +592,38 @@ def run_single_task(
                 if new_shortcut_str != "None" and new_shortcut_str is not None:
                     knowledge_reflector.add_new_shortcut(new_shortcut_str, info_pool)
                 info_pool.additional_knowledge = updated_tips
-
+                steps.append({
+                    "step": iter,
+                    "operation": "knowledge_reflection",
+                    "prompt_knowledge": prompt_knowledge,
+                    "new_shortcut": new_shortcut_str,
+                    "updated_tips": updated_tips,
+                })
                 ## save the updated knowledge and shortcuts ##
                 with open(local_knowledge_save_path, "w") as f:
                     f.write(info_pool.additional_knowledge)
                 with open(local_shortcuts_save_path, "w") as f:
                     json.dump(info_pool.shortcuts, f)
                 pdb_hook()
+        
+        ### Stopping by planner ###
+        if "Finished" in info_pool.current_subgoal.strip():
+            info_pool.finish_thought = parsed_result_planning['thought']
+            steps.append({
+                "step": iter,
+                "operation": "finish",
+                "finish_flag": "success",
+                "final_info_pool": asdict(info_pool),
+            })
+            finish(
+                info_pool,
+                persistent_knowledge_path = persistent_knowledge_path,
+                persistent_shortcuts_path = persistent_shortcuts_path
+            )
+            return
 
         ### Executor: Action Decision ###
+        print("\n### Executor ... ###\n")
         prompt_action = executor.get_prompt(info_pool)
         chat_action = executor.init_chat()
         chat_action = add_response("user", prompt_action, chat_action, image=screenshot_file)
@@ -609,13 +633,19 @@ def run_single_task(
 
         info_pool.last_action_thought = action_thought
         ## execute the action ##
-        action_object = executor.execute(action_object_str, info_pool, 
+        action_object, num_atomic_actions_executed, shortcut_error_message = executor.execute(action_object_str, info_pool, 
                         screenshot_file=screenshot_file, 
                         ocr_detection=perceptor.ocr_detection,
                         ocr_recognition=perceptor.ocr_recognition,
                         thought = action_thought,
                         )
         if action_object is None:
+            steps.append({
+                "step": iter,
+                "operation": "finish",
+                "finish_flag": "abnormal",
+                "final_info_pool": asdict(info_pool),
+            })
             finish(
                 info_pool, 
                 persistent_knowledge_path = persistent_knowledge_path,
@@ -642,6 +672,7 @@ def run_single_task(
             json.dump(steps, f, indent=4)
         pdb_hook()
         
+        print("\n### Perceptor ... ###\n")
         ## perception on the next step ##
         last_perception_infos = copy.deepcopy(perception_infos)
         last_screenshot_file = "./screenshot/last_screenshot.jpg"
@@ -679,6 +710,7 @@ def run_single_task(
         pdb_hook()
         ##
 
+        print("\n### Action Reflector ... ###\n")
         ### Action Reflection: Check whether the action works as expected ###
         prompt_action_reflect = action_reflector.get_prompt(info_pool)
         chat_action_reflect = action_reflector.init_chat()
@@ -701,10 +733,12 @@ def run_single_task(
             if action_name in ATOMIC_ACTION_SIGNITURES:
                 back(ADB_PATH) # back one step for atomic actions
             elif action_name in info_pool.shortcuts:
-                shortcut_object = info_pool.shortcuts[action_name]
-                num_of_atomic_actions = len(shortcut_object['atomic_action_sequence'])
-                for _ in range(num_of_atomic_actions):
-                    back(ADB_PATH)
+                # shortcut_object = info_pool.shortcuts[action_name]
+                # num_of_atomic_actions = len(shortcut_object['atomic_action_sequence'])
+                if shortcut_error_message is not None:
+                    error_description += f"; Error occured while executing the shortcut: {shortcut_error_message}"
+                for _ in range(num_atomic_actions_executed):
+                    back(ADB_PATH)   
             else:
                 raise ValueError("Invalid action name:", action_name)
 
@@ -736,6 +770,7 @@ def run_single_task(
         
         ### NoteTaker: Record Important Content ###
         if action_outcome == "A":
+            print("\n### NoteKeeper ... ###\n")
             # if previous action is successful, record the important content
             prompt_note = notetaker.get_prompt(info_pool)
             chat_note = notetaker.init_chat()
@@ -819,7 +854,9 @@ def main():
     parser.add_argument("--specified_knowledge_path", type=str, default=None)
     parser.add_argument("--specified_shortcuts_path", type=str, default=None)
     parser.add_argument("--setting", type=str, default="individual") # individual or curriculum
+    parser.add_argument("--future_tasks_visible", action="store_true", default=False)
     parser.add_argument("--reset_phone_state", action="store_true", default=True)
+    parser.add_argument("--max_itr", type=str, default=None)
 
     args = parser.parse_args()
     torch.manual_seed(args.seed)
@@ -841,7 +878,8 @@ def main():
             persistent_shortcuts_path=None,
             reset_phone_state=True,
             perceptor=None,
-            perception_args=DEFAULT_PERCEPTION_ARGS
+            perception_args=DEFAULT_PERCEPTION_ARGS,
+            max_itr=args.max_itr
         )
     else:
         # multi task inference
@@ -874,6 +912,12 @@ def main():
         
         print(f"INFO: Running tasks from {args.tasks_json} using {args.setting} setting ...")
         for i, task in enumerate(tasks):
+            ## if future tasks are visible, specify them in the args ##
+            if args.future_tasks_visible and i < len(tasks) - 1 and args.setting == "curriculum":
+                future_tasks = [t['instruction'] for t in tasks[i+1:]]
+            else:
+                future_tasks = []
+
             print("\n\n### Running on task:", task["instruction"])
             print("\n\n")
             instruction = task["instruction"]
@@ -883,6 +927,7 @@ def main():
                 task_id = args.tasks_json.split("/")[-1].split(".")[0] + f"_{args.setting}" + f"_{i}"
             run_single_task(
                 instruction,
+                future_tasks=future_tasks,
                 log_root=args.log_root,
                 run_name=args.run_name,
                 task_id=task_id,
@@ -892,7 +937,8 @@ def main():
                 persistent_shortcuts_path=persistent_shortcuts_path,
                 reset_phone_state=True,
                 perceptor=perceptor,
-                perception_args=DEFAULT_PERCEPTION_ARGS
+                perception_args=DEFAULT_PERCEPTION_ARGS,
+                max_itr=args.max_itr
             )
             import time
             print("DONE:", task["instruction"])

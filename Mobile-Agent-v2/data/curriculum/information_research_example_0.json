@@ -1,0 +1,19 @@
+[
+    {
+        "instruction": "Create a new note and write \"hello world\" in it.",
+        "category": "information_research_and_summarization",
+        "type": "single_app",
+        "apps": [
+            "Notes"
+        ]
+    },
+    {
+        "instruction": "Check the current whether and create a new note for dressing tmr in Notes.",
+        "category": "information_research_and_summarization",
+        "type": "multi_app",
+        "apps": [
+            "Google",
+            "Notes"
+        ]
+    }
+]

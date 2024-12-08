@@ -1,0 +1,77 @@
+[
+  {
+      "instruction": "Find the current weather in my city using Google.",
+      "category": "information_research_and_summarization",
+      "type": "single_app",
+      "apps": [
+          "Google"
+      ]
+  },
+  {
+      "instruction": "Check the top 3 trending topics on X and summarize them in Notes.",
+      "category": "information_research_and_summarization",
+      "type": "multi_app",
+      "apps": [
+          "X",
+          "Notes"
+      ]
+  },
+  {
+      "instruction": "Find a popular local tourist spot near me using Maps and summarize the top attractions or activities there in Notes.",
+      "category": "information_research_and_summarization",
+      "type": "multi_app",
+      "apps": [
+          "Maps",
+          "Notes"
+      ]
+  },
+  {
+      "instruction": "Search for the best-rated budget hotel in Paris on Booking and summarize the top 3 options with their prices and key amenities in Notes.",
+      "category": "information_research_and_summarization",
+      "type": "multi_app",
+      "apps": [
+          "Booking",
+          "Notes"
+      ]
+  },
+  {
+      "instruction": "Compare prices and customer ratings for a new smartphone model by looking it up on Amazon Shopping and Walmart, then summarize the findings in Notes.",
+      "category": "information_research_and_summarization",
+      "type": "multi_app",
+      "apps": [
+          "Amazon Shopping",
+          "Walmart",
+          "Notes"
+      ]
+  },
+  {
+      "instruction": "Search Google and YouTube for reviews of the latest action movie, then summarize critics’ opinions, audience reactions, and overall ratings in Notes.",
+      "category": "information_research_and_summarization",
+      "type": "multi_app",
+      "apps": [
+          "Google",
+          "YouTube",
+          "Notes"
+      ]
+  },
+  {
+      "instruction": "Check TripAdvisor for the top 5 restaurants in Tokyo, use Chrome to verify their official websites or menus, then summarize their specialties and price ranges in Notes.",
+      "category": "information_research_and_summarization",
+      "type": "multi_app",
+      "apps": [
+          "TripAdvisor",
+          "Chrome",
+          "Notes"
+      ]
+  },
+  {
+      "instruction": "Find trending fashion styles on Instagram, then look up related product listings on Best Buy, and summarize the most popular items and approximate costs in Notes.",
+      "category": "information_research_and_summarization",
+      "type": "multi_app",
+      "apps": [
+          "Instagram",
+          "Best Buy",
+          "Notes"
+      ]
+  }
+]

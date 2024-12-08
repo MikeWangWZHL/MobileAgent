@@ -83,3 +83,37 @@ def clear_background_and_back_to_home(adb_path):
     tap(adb_path, 540, 1835)
     sleep(2)
     home(adb_path)
+
+def clear_notes(adb_path):
+    # notes package name: com.samsung.android.app.notes
+    home(adb_path)
+    sleep(1.5)
+
+    # open notes
+    command = adb_path + f" shell am start -n com.samsung.android.app.notes/.memolist.MemoListActivity"
+    subprocess.run(command, capture_output=True, text=True, shell=True)
+    sleep(4)
+
+    # tap three dots
+    tap(adb_path, 987, 820)
+    sleep(2)
+    
+    # tap edit
+    tap(adb_path, 642, 827)
+    sleep(2)
+
+    # tap all
+    tap(adb_path, 92, 799)
+    sleep(2)
+
+    # tap delete
+    tap(adb_path, 751, 2102)
+    sleep(2)
+
+    # tap move to trash
+    tap(adb_path, 723, 2056)
+    sleep(2)
+
+    clear_background_and_back_to_home(adb_path)
+    
+    
