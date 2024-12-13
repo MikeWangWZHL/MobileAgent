@@ -19,6 +19,58 @@ def get_screenshot(adb_path):
     image.convert("RGB").save(save_path, "JPEG")
     os.remove(image_path)
 
+def save_screenshot_to_file(adb_path, file_path="screenshot.png"):
+    """
+    Captures a screenshot from an Android device using ADB, saves it locally, and removes the screenshot from the device.
+
+    Args:
+        adb_path (str): The path to the adb executable.
+
+    Returns:
+        str: The path to the saved screenshot, or raises an exception on failure.
+    """
+    # Define the local filename for the screenshot
+    local_file = file_path
+    
+    if os.path.dirname(local_file) != "":
+        os.makedirs(os.path.dirname(local_file), exist_ok=True)
+
+    # Define the temporary file path on the Android device
+    device_file = "/sdcard/screenshot.png"
+    
+    try:
+        print("\tRemoving existing screenshot from the Android device...")
+        command = adb_path + " shell rm /sdcard/screenshot.png"
+        subprocess.run(command, capture_output=True, text=True, shell=True)
+        time.sleep(0.5)
+
+        # Capture the screenshot on the device
+        print("\tCapturing screenshot on the Android device...")
+        result = subprocess.run(f"{adb_path} shell screencap -p {device_file}", capture_output=True, text=True, shell=True)
+        time.sleep(0.5)
+        if result.returncode != 0:
+            raise RuntimeError(f"Error: Failed to capture screenshot on the device. {result.stderr}")
+        
+        # Pull the screenshot to the local computer
+        print("\tTransferring screenshot to local computer...")
+        result = subprocess.run(f"{adb_path} pull {device_file} {local_file}", capture_output=True, text=True, shell=True)
+        time.sleep(0.5)
+        if result.returncode != 0:
+            raise RuntimeError(f"Error: Failed to transfer screenshot to local computer. {result.stderr}")
+        
+        # Remove the screenshot from the device
+        print("\tRemoving screenshot from the Android device...")
+        result = subprocess.run(f"{adb_path} shell rm {device_file}", capture_output=True, text=True, shell=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"Error: Failed to remove screenshot from the device. {result.stderr}")
+        
+        print(f"\tScreenshot saved to {local_file}")
+        return local_file
+    
+    except Exception as e:
+        print(str(e))
+        raise
+
 
 def tap(adb_path, x, y):
     command = adb_path + f" shell input tap {x} {y}"
@@ -117,3 +169,16 @@ def clear_notes(adb_path):
     clear_background_and_back_to_home(adb_path)
     
     
+def clear_processes(adb_path, device=None):
+    ## 华为
+    # command = adb_path + (f" -s {device}" if device is not None else '') + \
+    #           f" shell am force-stop $( {adb_path} shell dumpsys activity activities | grep mResumedActivity | awk '{{print $4}}' | cut -d '/' -f 1)"
+
+    # ## 小米
+    # command = adb_path + (f" -s {device}" if device is not None else '') + \
+    #           f" shell am force-stop $( {adb_path} shell dumpsys activity activities | grep topResumedActivity | awk '{{print $3}}' | cut -d '/' -f 1)"
+    
+    ## Samsung
+    command = adb_path + (f" -s {device}" if device is not None else '') + \
+              f" shell am force-stop $( {adb_path} shell dumpsys activity activities | grep topResumedActivity | awk '{{print $3}}' | cut -d '/' -f 1)"
+    subprocess.run(command, capture_output=True, text=True, shell=True)

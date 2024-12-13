@@ -3,12 +3,13 @@ from abc import ABC, abstractmethod
 
 from dataclasses import dataclass, field
 from MobileAgentE.api import encode_image
-from MobileAgentE.controller import tap, swipe, type, back, home, switch_app, enter
+from MobileAgentE.controller import tap, swipe, type, back, home, switch_app, enter, save_screenshot_to_file
 from MobileAgentE.text_localization import ocr
 import copy
 import re
 import json
 import time
+import os
 
 ### Helper Functions ###
 
@@ -90,6 +91,9 @@ def extract_json_object(text, json_type="dict"):
         if "//" in text:
             # Remove comments starting with //
             text = re.sub(r'//.*', '', text)
+        if "# " in text:
+            # Remove comments starting with #
+            text = re.sub(r'#.*', '', text)
         # Try to parse the entire text as JSON
         return json.loads(text)
     except json.JSONDecodeError:
@@ -294,6 +298,10 @@ ATOMIC_ACTION_SIGNITURES = {
         "arguments": [],
         "description": lambda info: "Return to home page."
     },
+    "Wait": {
+        "arguments": [],
+        "description": lambda info: "Wait for 10 seconds to give more time for a page loading."
+    }
     # "Finish": {
     #     "arguments": [],
     #     "description": lambda info: "Finish the task."
@@ -454,7 +462,7 @@ class Executor(BaseAgent):
                     name_coordinate = [int((coordinate[ti][0] + coordinate[ti][2])/2), int((coordinate[ti][1] + coordinate[ti][3])/2)]
                     tap(adb_path, name_coordinate[0], name_coordinate[1]- int(coordinate[ti][3] - coordinate[ti][1]))# 
                     break
-            time.sleep(5)
+            time.sleep(10)
         
         elif "Tap".lower() == action.lower():
             x, y = int(arguments["x"]), int(arguments["y"])
@@ -473,7 +481,7 @@ class Executor(BaseAgent):
 
         elif "Enter".lower() == action.lower():
             enter(adb_path)
-            time.sleep(5)
+            time.sleep(8)
 
         elif "Back".lower() == action.lower():
             back(adb_path)
@@ -486,13 +494,17 @@ class Executor(BaseAgent):
         elif "Switch_App".lower() == action.lower():
             switch_app(adb_path)
             time.sleep(3)
+        
+        elif "Wait".lower() == action.lower():
+            time.sleep(10)
+
 
         # elif "Finish".lower() == action.lower():
         #     info_pool.finish_thought = kwargs["thought"]
         #     finish(info_pool)
         #     time.sleep(2)
         
-    def execute(self, action_str: str, info_pool: InfoPool, **kwargs) -> None:
+    def execute(self, action_str: str, info_pool: InfoPool, screenshot_log_dir=None, iter="", **kwargs) -> None:
         action_object = extract_json_object(action_str)
         if action_object is None:
             print("Error! Invalid JSON for executing action: ", action_str)
@@ -504,6 +516,10 @@ class Executor(BaseAgent):
         if action in ATOMIC_ACTION_SIGNITURES:
             print("Executing atomic action: ", action, arguments)
             self.execute_atomic_action(action, arguments, info_pool=info_pool, **kwargs)
+            if screenshot_log_dir is not None:
+                time.sleep(1)
+                screenshot_file = os.path.join(screenshot_log_dir, f"{iter}__{action.replace(' ', '')}.png")
+                save_screenshot_to_file(self.adb, screenshot_file)
             return action_object, 1, None # number of atomic actions executed
         # execute shortcut
         elif action in info_pool.shortcuts:
@@ -523,6 +539,12 @@ class Executor(BaseAgent):
                                 atomic_action_args[atomic_arg_key] = value
                     print(f"\t Executing sub-step {i}:", atomic_action_name, atomic_action_args, "...")
                     self.execute_atomic_action(atomic_action_name, atomic_action_args, info_pool=info_pool, **kwargs)
+                    # log screenshot during shortcut execution
+                    if screenshot_log_dir is not None:
+                        time.sleep(1)
+                        screenshot_file = os.path.join(screenshot_log_dir, f"{iter}__{action.replace(' ', '')}__{i}-{atomic_action_name.replace(' ', '')}.png")
+                        save_screenshot_to_file(self.adb, screenshot_file)
+                        
                 except Exception as e:
                     e += f"\nError in executing step {i}: {atomic_action_name} {atomic_action_args}"
                     print("Error in executing shortcut: ", action, e)
@@ -814,3 +836,44 @@ class KnowledgeReflector(BaseAgent):
         updated_tips = response.split("### Updated Tips ###")[-1].replace("\n", " ").replace("  ", " ").strip()
         return {"new_shortcut": new_shortcut, "updated_tips": updated_tips}
 
+
+class KnowledgeRetriever(BaseAgent):
+    def init_chat(self) -> list:
+        operation_history = []
+        sysetm_prompt = "You are a helpful AI assistant specializing in mobile phone operations. Your goal is to select relevant tips and shortcuts from previous experience to the current task."
+        operation_history.append(["system", [{"type": "text", "text": sysetm_prompt}]])
+        return operation_history
+
+    def get_prompt(self, instruction, tips, shortcuts) -> str:
+        prompt = "### Existing Tips from Past Experience ###\n"
+        prompt += f"{tips}\n\n"
+        
+        prompt += "### Existing Shortcuts from Past Experience ###\n"
+        for shortcut, value in shortcuts.items():
+            prompt += f"- Name: {shortcut} | Description: {value['description']}\n"
+        
+        prompt += "\n"
+        prompt += "### Current Task ###\n"
+        prompt += f"{instruction}\n\n"
+
+        prompt += "---\n"
+        prompt += "Carefully examine the information provided above to pick tips and shortcuts that can be helpful to the current task. Remove tips or shortcuts that are irrelevant to the current task.\n"
+
+        prompt += "Provide your output in the following format containing two parts:\n\n"
+        prompt += "### Selected Tips ###\n"
+        prompt += "Tips that are generally useful and relevant to the current task. If there are no relevant tips, put \"None\" here.\n"
+
+        prompt += "### Selected Shortcuts ###\n"
+        prompt += "Provide your answer as a list of selected shortcut names: [\"shortcut1\", \"shortcut2\", ...]. If there are no relevant shortcuts, put \"None\" here.\n"
+        return prompt
+    
+    def parse_response(self, response: str) -> dict:
+        selected_tips = response.split("### Selected Tips ###")[-1].split("### Selected Shortcuts ###")[0].replace("\n", " ").replace("  ", " ").strip()
+        selected_shortcuts_str = response.split("### Selected Shortcuts ###")[-1].replace("\n", " ").replace("  ", " ").strip()
+        try:
+            selected_shortcut_names = extract_json_object(selected_shortcuts_str, json_type="list")
+            selected_shortcut_names = [s.strip() for s in selected_shortcut_names]
+        except:
+            selected_shortcut_names = []
+            
+        return {"selected_tips": selected_tips, "selected_shortcut_names": selected_shortcut_names}

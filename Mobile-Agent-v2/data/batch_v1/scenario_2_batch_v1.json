@@ -1,0 +1,52 @@
+{
+    "length": 5,
+    "scenario": "INFORMATION_RESEARCHING",
+    "scenario_id": 2,
+    "tasks": [
+        {
+            "task_id": "2_segment_anything_cited",
+            "instruction": "On Google Scholar, find the most-cited paper that cites the paper 'Segment Anything' but is not a survey. Open the PDF of the paper you find and stop there.",
+            "type": "single_app",
+            "apps": [
+                "Chrome"
+            ]
+        },
+        {
+            "task_id": "2_llm_agents_survey",
+            "instruction": "Find at least three representative survey papers on LLM agents and add their titles to the Notes.",
+            "type": "multi_app",
+            "apps": [
+                "Chrome",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "2_recipes_chinese",
+            "instruction": "I have some onions, beef, and potatoes in my refrigerator. Can you find me a Chinese-style recipe that uses all three ingredients and can be prepared in under an hour? And find me a video tutorial on YouTube for that.",
+            "type": "multi_app",
+            "apps": [
+                "Chrome",
+                "YouTube"
+            ]
+        },
+        {
+            "task_id": "2_mcdonalds_deals",
+            "instruction": "Can you check the MacDonald's APP to see if there are any Rewards or Deals including Spicy McCrispy. If so, help me add that to Mobile Order (Do not pay yet, I will do it myself). And then check the pickup location and get directions in Maps.",
+            "type": "multi_app",
+            "apps": [
+                "McDonald's",
+                "Maps"
+            ]
+        },
+        {
+            "task_id": "2_headphones_reviews",
+            "instruction": "Find three detailed user reviews of the Bose QC45 headphones from Amazon and other tech review sites. Summarize the general sentiment in the Notes.",
+            "type": "multi_app",
+            "apps": [
+                "Amazon",
+                "Chrome",
+                "Notes"
+            ]
+        }
+    ]
+}

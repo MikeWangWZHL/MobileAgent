@@ -1,6 +1,8 @@
 # python run_agent_E.py --instruction "Open Notes and type hello world"
 
-# python run_agent_E.py --instruction "Search for the top 3 trending news topics on \"X\" and write a short summary in the \"Notes\" APP."
+# python run_agent_E.py --instruction "Search tmr's weather."
+
+python run_agent_E.py --instruction "Find a highly recommended local restaurant in Chicago on Tripadvisor. Check Lemon8 for posts about must-try dishes there and summarize in Notes."
 
 # python run_agent_E.py \
 #     --tasks_json data/seq_task/example.json \
@@ -16,9 +18,9 @@
 #     --setting "curriculum"
 
 
-## future task visible ##
-python run_agent_E.py \
-    --run_name "information_research_example_0_future_task_visible__fifth_run" \
-    --tasks_json data/curriculum/information_research_example_0.json \
-    --setting "curriculum" \
-    --future_tasks_visible
+# ## future task visible ##
+# python run_agent_E.py \
+#     --run_name "information_research_example_0_future_task_visible__fifth_run" \
+#     --tasks_json data/curriculum/information_research_example_0.json \
+#     --setting "curriculum" \
+#     --future_tasks_visible

@@ -1,0 +1,52 @@
+{
+    "length": 5,
+    "scenario": "WHATS_TRENDING",
+    "scenario_id": 4,
+    "tasks": [
+        {
+            "task_id": "4_x_back_myth_wukong",
+            "instruction": "Find the top posts about the game 'Black Myth Wukong' on X and summarize the key highlights in Notes.",
+            "type": "multi_app",
+            "apps": [
+                "X",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "4_x_trending_news",
+            "instruction": "Check the top 3 trending news on X. Read a few posts to figure out what's happening. And create a new Note to summarize your findings.",
+            "type": "multi_app",
+            "apps": [
+                "X",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "4_watercolor_painting_tutorial",
+            "instruction": "I want to learn how to paint watercolor. Find me some content creators to follow on Lemon8 that has highly liked posts about watercolor painting tutorials. List their account names in Notes.",
+            "type": "multi_app",
+            "apps": [
+                "Lemon8",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "4_movie_trending",
+            "instruction": "Check the top 5 trending movies on Fandango that are currently in theaters. Compare their ratings and create a note in Notes for the highest-rated one, including its name and showtimes.",
+            "type": "single_app",
+            "apps": [
+                "Fandango",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "4_horror_movie_reviews",
+            "instruction": "Find me the latest horror movie currently in theaters on Fandango. Check some reviews on Lemon8 about the movie and create a note in Notes with the general sentiment.",
+            "type": "multi_app",
+            "apps": [
+                "Fandango",
+                "Lemon8Notes"
+            ]
+        }
+    ]
+}

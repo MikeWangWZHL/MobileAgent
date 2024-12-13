@@ -1,7 +1,7 @@
 {
     "information_research_and_summarization": [
       {
-        "task_description": "Find the current weather in my city and write a short note about it in Notes.",
+        "instruction": "Find the current weather in my city and write a short note about it in Notes.",
         "type": "single_app",
         "apps": [
           "Google",
@@ -9,7 +9,7 @@
         ]
       },
       {
-        "task_description": "Search for the top 3 trending news topics on X and write a short summary in Notes.",
+        "instruction": "Search for the top 3 trending news topics on X and write a short summary in Notes.",
         "type": "multi_app",
         "apps": [
           "X",
@@ -17,7 +17,7 @@
         ]
       },
       {
-        "task_description": "Find the most popular tourist attractions in Paris on TripAdvisor and create a summary in Notes.",
+        "instruction": "Find the most popular tourist attractions in Paris on TripAdvisor and create a summary in Notes.",
         "type": "multi_app",
         "apps": [
           "TripAdvisor",
@@ -25,7 +25,7 @@
         ]
       },
       {
-        "task_description": "Research the latest smartphone reviews on Google and YouTube, then summarize the findings in Notes.",
+        "instruction": "Research the latest smartphone reviews on Google and YouTube, then summarize the findings in Notes.",
         "type": "multi_app",
         "apps": [
           "Google",
@@ -34,7 +34,7 @@
         ]
       },
       {
-        "task_description": "Find recent scientific papers on AI from arxiv and summarize the main findings alongside related news from X in Notes.",
+        "instruction": "Find recent scientific papers on AI from arxiv and summarize the main findings alongside related news from X in Notes.",
         "type": "multi_app",
         "apps": [
           "Chrome",
@@ -45,35 +45,35 @@
     ],
     "routine_management": [
       {
-        "task_description": "Set a daily reminder at 8 AM in the Calendar to check emails.",
+        "instruction": "Set a daily reminder at 8 AM in the Calendar to check emails.",
         "type": "single_app",
         "apps": [
           "Calendar"
         ]
       },
       {
-        "task_description": "Sort emails in Gmail into folders labeled 'Work', 'Personal', and 'Others'.",
+        "instruction": "Sort emails in Gmail into folders labeled 'Work', 'Personal', and 'Others'.",
         "type": "single_app",
         "apps": [
           "Gmail"
         ]
       },
       {
-        "task_description": "Review my Calendar for the week and suggest optimal time slots for a 1-hour workout.",
+        "instruction": "Review my Calendar for the week and suggest optimal time slots for a 1-hour workout.",
         "type": "multi_app",
         "apps": [
           "Calendar"
         ]
       },
       {
-        "task_description": "Check my Gmail for important messages and draft automatic replies for them.",
+        "instruction": "Check my Gmail for important messages and draft automatic replies for them.",
         "type": "single_app",
         "apps": [
           "Gmail"
         ]
       },
       {
-        "task_description": "Consolidate meeting schedules from Gmail and create a comprehensive weekly plan in Notes.",
+        "instruction": "Consolidate meeting schedules from Gmail and create a comprehensive weekly plan in Notes.",
         "type": "multi_app",
         "apps": [
           "Gmail",
@@ -84,14 +84,14 @@
     ],
     "online_shopping_and_deal_hunting": [
       {
-        "task_description": "Search for a Bluetooth speaker under $50 on Amazon.",
+        "instruction": "Search for a Bluetooth speaker under $50 on Amazon.",
         "type": "single_app",
         "apps": [
           "Amazon Shopping"
         ]
       },
       {
-        "task_description": "Compare the prices of the same speaker on Walmart, Best Buy, and Amazon Shopping.",
+        "instruction": "Compare the prices of the same speaker on Walmart, Best Buy, and Amazon Shopping.",
         "type": "multi_app",
         "apps": [
           "Amazon Shopping",
@@ -100,7 +100,7 @@
         ]
       },
       {
-        "task_description": "Find a flight deal to New York City for next weekend using TripAdvisor and Booking.",
+        "instruction": "Find a flight deal to New York City for next weekend using TripAdvisor and Booking.",
         "type": "multi_app",
         "apps": [
           "TripAdvisor",
@@ -108,7 +108,7 @@
         ]
       },
       {
-        "task_description": "Check for discounts on groceries across Walmart and Amazon, and compile the best deals in Notes.",
+        "instruction": "Check for discounts on groceries across Walmart and Amazon, and compile the best deals in Notes.",
         "type": "multi_app",
         "apps": [
           "Walmart",
@@ -117,7 +117,7 @@
         ]
       },
       {
-        "task_description": "Research Black Friday deals for gaming consoles on Best Buy, Walmart, and Amazon Shopping, then rank the deals by value in Notes.",
+        "instruction": "Research Black Friday deals for gaming consoles on Best Buy, Walmart, and Amazon Shopping, then rank the deals by value in Notes.",
         "type": "multi_app",
         "apps": [
           "Amazon Shopping",
@@ -129,7 +129,7 @@
     ],
     "entertainment_and_recreation": [
       {
-        "task_description": "Search for viral TikTok challenges and save the most interesting one in Notes.",
+        "instruction": "Search for viral TikTok challenges and save the most interesting one in Notes.",
         "type": "multi_app",
         "apps": [
           "TikTok",
@@ -137,7 +137,7 @@
         ]
       },
       {
-        "task_description": "Find the top 3 music playlists on YouTube for relaxing and save the links in Notes.",
+        "instruction": "Find the top 3 music playlists on YouTube for relaxing and save the links in Notes.",
         "type": "multi_app",
         "apps": [
           "YouTube",
@@ -145,7 +145,7 @@
         ]
       },
       {
-        "task_description": "Check the best-rated local parks on TripAdvisor and suggest a good time to visit based on weather.",
+        "instruction": "Check the best-rated local parks on TripAdvisor and suggest a good time to visit based on weather.",
         "type": "multi_app",
         "apps": [
           "TripAdvisor",
@@ -153,7 +153,7 @@
         ]
       },
       {
-        "task_description": "Plan a weekend getaway using Booking for accommodations and Maps for travel time.",
+        "instruction": "Plan a weekend getaway using Booking for accommodations and Maps for travel time.",
         "type": "multi_app",
         "apps": [
           "Booking",
@@ -161,7 +161,7 @@
         ]
       },
       {
-        "task_description": "Create a 3-day travel itinerary to Los Angeles with suggested attractions from REDnote and local restaurant recommendations from Maps.",
+        "instruction": "Create a 3-day travel itinerary to Los Angeles with suggested attractions from REDnote and local restaurant recommendations from Maps.",
         "type": "multi_app",
         "apps": [
           "REDnote",

@@ -9,7 +9,7 @@ from MobileAgentE.api import inference_chat
 from MobileAgentE.text_localization import ocr
 from MobileAgentE.icon_localization import det
 from MobileAgentE.controller import get_screenshot, back, clear_background_and_back_to_home, clear_notes
-from MobileAgentE.agents import InfoPool, Manager, Executor, Notetaker, ActionReflector, KnowledgeReflector, INIT_SHORTCUTS
+from MobileAgentE.agents import InfoPool, Manager, Executor, Notetaker, ActionReflector, KnowledgeReflector, KnowledgeRetriever, INIT_SHORTCUTS
 from MobileAgentE.agents import add_response, add_response_two_image
 from MobileAgentE.agents import ATOMIC_ACTION_SIGNITURES
 
@@ -38,7 +38,8 @@ OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 # OPENAI_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_school_ecole", "r").read()
 OPENAI_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_taobao", "r").read()
 
-USAGE_TRACKING_JSONL = "usage/from_dec_5.jsonl"
+# USAGE_TRACKING_JSONL = "usage/from_dec_5.jsonl"
+USAGE_TRACKING_JSONL = "usage/eval_batch_v1.jsonl"
 
 # Reasoning GPT model
 REASONING_MODEL = "gpt-4o-2024-11-20"
@@ -50,10 +51,13 @@ CAPTION_CALL_METHOD = "api"
 CAPTION_MODEL = "qwen-vl-plus"
 
 # If you choose the api caption call method, input your Qwen api here
-QWEN_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_key_mine", "r").read()
+# QWEN_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_key_mine", "r").read()
+QWEN_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/openai_key_school_semafor", "r").read()
 # QWEN_API_KEY = open("/Users/wangz3/Desktop/vlm_agent_project/MobileAgent/qwen_key_from_xi", "r").read()
 
 # # You can add operational knowledge to help Agent operate more accurately.
+FORCE_ADDED="""0. Do not add any payment information. If you are asked to sign in, ignore it or sign in as a guest if possible. Close any pop-up windows when opening an app.
+"""
 INIT_TIPS = """1. By default, no APPs are opened in the background.
 2. Screenshots may show partial text in text boxes from your previous input; this does not count as an error.
 3. When creating new Notes, you do not need to enter a title unless the user specifically requests it.
@@ -64,6 +68,8 @@ EVOLVE_FREQ = 5 # how often the agent evolves its knowledge; in iterations
 
 TEMP_DIR = "temp"
 SCREENSHOT_DIR = "screenshot"
+
+ENABLE_KNOWLEDGE_RETRIEVER = False
 
 # # Reflection Setting: If you want to improve the operating speed, you can disable the reflection agent. This may reduce the success rate.
 # reflection_switch = True
@@ -372,7 +378,7 @@ def finish(
     if persistent_shortcuts_path:
         print("Update persistent shortcuts:", persistent_shortcuts_path)
         with open(persistent_shortcuts_path, "w") as f:
-            json.dump(info_pool.shortcuts, f)
+            json.dump(info_pool.shortcuts, f, indent=4)
     # exit(0)
 
 def run_single_task(
@@ -433,6 +439,54 @@ def run_single_task(
         additional_knowledge = INIT_TIPS # user provided initial knowledge
     print("INFO: Initial knowledge:", additional_knowledge)
 
+    steps = []
+    task_start_time = time.time()
+
+    ## additional retrieval step before starting the task if the existing knowledge or shortcuts are too long ##
+    if ENABLE_KNOWLEDGE_RETRIEVER:
+        if len(additional_knowledge) > 1000 or len(initial_shortcuts) > 10:
+            knowledge_retrieval_log = {
+                "step": -1,
+                "operation": "knowledge_retrieval",
+                "original_tips": additional_knowledge,
+                "original_shortcuts": initial_shortcuts,
+            }
+            # select tips and shortcuts using knowledge retriever
+            knowledge_retriever_start_time = time.time()
+            knowledge_retriever = KnowledgeRetriever()
+            knowledge_retrieval_prompt = knowledge_retriever.get_prompt(instruction, additional_knowledge, initial_shortcuts)
+            chat_knowledge_retrieval = knowledge_retriever.init_chat()
+            chat_knowledge_retrieval = add_response("user", knowledge_retrieval_prompt, chat_knowledge_retrieval, image=None)
+            output_knowledge_retrieval = inference_chat(chat_knowledge_retrieval, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
+            parsed_knowledge_retrieval = knowledge_retriever.parse_response(output_knowledge_retrieval)
+            additional_knowledge, selected_shortcut_names = parsed_knowledge_retrieval['selected_tips'], parsed_knowledge_retrieval['selected_shortcut_names']
+            if additional_knowledge.strip() == "None":
+                additional_knowledge = INIT_TIPS
+            if selected_shortcut_names is None or selected_shortcut_names == []:
+                initial_shortcuts = INIT_SHORTCUTS
+            else:
+                selected_shortcuts = {}
+                for key in selected_shortcut_names:
+                    if key in initial_shortcuts:
+                        selected_shortcuts[key] = initial_shortcuts[key]
+                    else:
+                        print(f"WARNING: {key} is not in initial_shortcuts.")
+                if selected_shortcuts != {}:
+                    initial_shortcuts = selected_shortcuts
+            knowledge_retriever_end_time = time.time()
+            knowledge_retrieval_log["knowledge_retrieval_prompt"] = knowledge_retrieval_prompt
+            knowledge_retrieval_log["knowledge_retrieval_response"] = parsed_knowledge_retrieval
+            knowledge_retrieval_log["selected_tips"] = additional_knowledge
+            knowledge_retrieval_log["selected_shortcuts"] = initial_shortcuts
+            knowledge_retrieval_log["duration"] = knowledge_retriever_end_time - knowledge_retriever_start_time
+            steps.append(knowledge_retrieval_log)
+            with open(log_json_path, "w") as f:
+                json.dump(steps, f, indent=4)
+
+    ### Important general instructions for safety ###
+    additional_knowledge = FORCE_ADDED + "\n" + additional_knowledge
+
+    # init info pool
     info_pool = InfoPool(
         instruction = instruction,
         shortcuts = initial_shortcuts,
@@ -463,10 +517,9 @@ def run_single_task(
     with open(local_knowledge_save_path, "w") as f:
         f.write(additional_knowledge)
     with open(local_shortcuts_save_path, "w") as f:
-        json.dump(initial_shortcuts, f)
+        json.dump(initial_shortcuts, f, indent=4)
 
     ### Start the agent ###
-    steps = []
     steps.append({
         "step": 0,
         "operation": "init",
@@ -484,6 +537,8 @@ def run_single_task(
         "perception_args": perception_args,
         "init_info_pool": asdict(info_pool),
     })
+    with open(log_json_path, "w") as f:
+        json.dump(steps, f, indent=4)
 
     iter = 0
     while True:
@@ -492,18 +547,23 @@ def run_single_task(
         ## max iteration stop ##
         if max_itr is not None and iter > max_itr:
             print("Max iteration reached. Stopping...")
+            task_end_time = time.time()
             steps.append({
                 "step": iter,
                 "operation": "finish",
                 "finish_flag": "max_iteration",
                 "final_info_pool": asdict(info_pool),
+                "task_duration": task_end_time - task_start_time,
             })
+            with open(log_json_path, "w") as f:
+                json.dump(steps, f, indent=4)
             return
 
         ## do perception if (1) the first perception; (2) previous action has error ##
         if iter == 1 or info_pool.action_outcomes[-1] in ["B", "C"]:
             screenshot_file = "./screenshot/screenshot.jpg"
             print("\n### Perceptor ... ###\n")
+            perception_start_time = time.time()
             perception_infos, width, height = perceptor.get_perception_infos(screenshot_file, temp_file=TEMP_DIR)
             shutil.rmtree(TEMP_DIR)
             os.mkdir(TEMP_DIR)
@@ -522,11 +582,13 @@ def run_single_task(
 
             ## log ##
             Image.open(screenshot_file).save(f"{log_dir}/screenshots/{iter}.jpg")
+            perception_end_time = time.time()
             steps.append({
                 "step": iter,
                 "operation": "perception",
                 "screenshot": f"screenshots/{iter}.jpg",
                 "perception_infos": perception_infos,
+                "duration": perception_end_time - perception_start_time,
             })
             with open(log_json_path, "w") as f:
                 json.dump(steps, f, indent=4)
@@ -554,6 +616,7 @@ def run_single_task(
         ## 
         info_pool.prev_subgoal = info_pool.current_subgoal
 
+        planning_start_time = time.time()
         prompt_planning = manager.get_prompt(info_pool)
         chat_planning = manager.init_chat()
         chat_planning = add_response("user", prompt_planning, chat_planning, image=screenshot_file)
@@ -564,6 +627,7 @@ def run_single_task(
         info_pool.current_subgoal = parsed_result_planning['current_subgoal']
 
         ## log ##
+        planning_end_time = time.time()
         steps.append({
             "step": iter,
             "operation": "planning",
@@ -571,6 +635,7 @@ def run_single_task(
             "thought": parsed_result_planning['thought'],
             "plan": parsed_result_planning['plan'],
             "current_subgoal": parsed_result_planning['current_subgoal'],
+            "duration": planning_end_time - planning_start_time,
         })
         with open(log_json_path, "w") as f:
             json.dump(steps, f, indent=4)
@@ -583,6 +648,7 @@ def run_single_task(
             if (info_pool.action_outcomes[-1] == "A" and iter % EVOLVE_FREQ == 0) or ("Finished" in info_pool.current_subgoal.strip()):
                 print("\n### Knowledge Reflector ... ###\n")
                 print("Updating knowledge...")
+                knowledge_reflection_start_time = time.time()
                 prompt_knowledge = knowledge_reflector.get_prompt(info_pool)
                 chat_knowledge = knowledge_reflector.init_chat()
                 chat_knowledge = add_response("user", prompt_knowledge, chat_knowledge, image=None)
@@ -592,13 +658,17 @@ def run_single_task(
                 if new_shortcut_str != "None" and new_shortcut_str is not None:
                     knowledge_reflector.add_new_shortcut(new_shortcut_str, info_pool)
                 info_pool.additional_knowledge = updated_tips
+                knowledge_reflection_end_time = time.time()
                 steps.append({
                     "step": iter,
                     "operation": "knowledge_reflection",
                     "prompt_knowledge": prompt_knowledge,
                     "new_shortcut": new_shortcut_str,
                     "updated_tips": updated_tips,
+                    "duration": knowledge_reflection_end_time - knowledge_reflection_start_time,
                 })
+                with open(log_json_path, "w") as f:
+                    json.dump(steps, f, indent=4)
                 ## save the updated knowledge and shortcuts ##
                 with open(local_knowledge_save_path, "w") as f:
                     f.write(info_pool.additional_knowledge)
@@ -609,12 +679,16 @@ def run_single_task(
         ### Stopping by planner ###
         if "Finished" in info_pool.current_subgoal.strip():
             info_pool.finish_thought = parsed_result_planning['thought']
+            task_end_time = time.time()
             steps.append({
                 "step": iter,
                 "operation": "finish",
                 "finish_flag": "success",
                 "final_info_pool": asdict(info_pool),
+                "task_duration": task_end_time - task_start_time,
             })
+            with open(log_json_path, "w") as f:
+                json.dump(steps, f, indent=4)
             finish(
                 info_pool,
                 persistent_knowledge_path = persistent_knowledge_path,
@@ -624,28 +698,38 @@ def run_single_task(
 
         ### Executor: Action Decision ###
         print("\n### Executor ... ###\n")
+        action_decision_start_time = time.time()
         prompt_action = executor.get_prompt(info_pool)
         chat_action = executor.init_chat()
         chat_action = add_response("user", prompt_action, chat_action, image=screenshot_file)
         output_action = inference_chat(chat_action, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
         parsed_result_action = executor.parse_response(output_action)
         action_thought, action_object_str, action_description = parsed_result_action['thought'], parsed_result_action['action'], parsed_result_action['description']
+        action_decision_end_time = time.time()
 
         info_pool.last_action_thought = action_thought
         ## execute the action ##
+        action_execution_start_time = time.time()
         action_object, num_atomic_actions_executed, shortcut_error_message = executor.execute(action_object_str, info_pool, 
                         screenshot_file=screenshot_file, 
                         ocr_detection=perceptor.ocr_detection,
                         ocr_recognition=perceptor.ocr_recognition,
                         thought = action_thought,
+                        screenshot_log_dir = os.path.join(log_dir, "screenshots"),
+                        iter = str(iter)
                         )
+        action_execution_end_time = time.time()
         if action_object is None:
+            task_end_time = time.time()
             steps.append({
                 "step": iter,
                 "operation": "finish",
                 "finish_flag": "abnormal",
                 "final_info_pool": asdict(info_pool),
+                "task_duration": task_end_time - task_start_time,
             })
+            with open(log_json_path, "w") as f:
+                json.dump(steps, f, indent=4)
             finish(
                 info_pool, 
                 persistent_knowledge_path = persistent_knowledge_path,
@@ -666,7 +750,9 @@ def run_single_task(
             "action_object": action_object,
             "action_object_str": action_object_str,
             "action_thought": action_thought,
-            "action_description": action_description
+            "action_description": action_description,
+            "duration": action_decision_end_time - action_decision_start_time,
+            "execution_duration": action_execution_end_time - action_execution_start_time,
         })
         with open(log_json_path, "w") as f:
             json.dump(steps, f, indent=4)
@@ -674,9 +760,10 @@ def run_single_task(
         
         print("\n### Perceptor ... ###\n")
         ## perception on the next step ##
-        last_perception_infos = copy.deepcopy(perception_infos)
+        perception_start_time = time.time()
+        # last_perception_infos = copy.deepcopy(perception_infos)
         last_screenshot_file = "./screenshot/last_screenshot.jpg"
-        last_keyboard = keyboard
+        # last_keyboard = keyboard
         if os.path.exists(last_screenshot_file):
             os.remove(last_screenshot_file)
         os.rename(screenshot_file, last_screenshot_file)
@@ -699,11 +786,13 @@ def run_single_task(
 
         ## log ##
         Image.open(screenshot_file).save(f"{log_dir}/screenshots/{iter+1}.jpg")
+        perception_end_time = time.time()
         steps.append({
             "step": iter+1,
             "operation": "perception",
             "screenshot": f"{log_dir}/screenshots/{iter+1}.jpg",
             "perception_infos": perception_infos,
+            "duration": perception_end_time - perception_start_time
         })
         with open(log_json_path, "w") as f:
             json.dump(steps, f, indent=4)
@@ -712,6 +801,7 @@ def run_single_task(
 
         print("\n### Action Reflector ... ###\n")
         ### Action Reflection: Check whether the action works as expected ###
+        action_reflection_start_time = time.time()
         prompt_action_reflect = action_reflector.get_prompt(info_pool)
         chat_action_reflect = action_reflector.init_chat()
         chat_action_reflect = add_response_two_image("user", prompt_action_reflect, chat_action_reflect, [last_screenshot_file, screenshot_file])
@@ -723,6 +813,7 @@ def run_single_task(
             parsed_result_action_reflect['progress_status']
         )
         info_pool.progress_status_history.append(progress_status)
+        action_reflection_end_time = time.time()
 
         if "A" in outcome: # Successful. The result of the last action meets the expectation.
             action_outcome = "A"
@@ -762,6 +853,7 @@ def run_single_task(
             "outcome": outcome,
             "error_description": error_description,
             "progress_status": progress_status,
+            "duration": action_reflection_end_time - action_reflection_start_time,
         })
         with open(log_json_path, "w") as f:
             json.dump(steps, f, indent=4)
@@ -772,6 +864,7 @@ def run_single_task(
         if action_outcome == "A":
             print("\n### NoteKeeper ... ###\n")
             # if previous action is successful, record the important content
+            notetaking_start_time = time.time()
             prompt_note = notetaker.get_prompt(info_pool)
             chat_note = notetaker.init_chat()
             chat_note = add_response("user", prompt_note, chat_note, image=screenshot_file) # new screenshot
@@ -780,12 +873,14 @@ def run_single_task(
             important_notes = parsed_result_note['important_notes']
             info_pool.important_notes = important_notes
             os.remove(last_screenshot_file)
-        
+            
+            notetaking_end_time = time.time()
             steps.append({
                 "step": iter+1,
                 "operation": "notetaking",
                 "prompt_note": prompt_note,
                 "important_notes": important_notes,
+                "duration": notetaking_end_time - notetaking_start_time,
             })
             with open(log_json_path, "w") as f:
                 json.dump(steps, f, indent=4)
@@ -812,28 +907,6 @@ def run_single_task(
 
 ###################################################################################################
 
-### example tasks_json ###
-EXAMPLE_TASKS_JSON = [
-    {
-        "instruction": "Find the current weather in my city.",
-        "category": "information_research_and_summarization",
-        "type": "single_app",
-        "apps": [
-            "Google",
-        ]
-    },
-    {
-        "instruction": "Search for the top 3 trending news topics on X and write a short summary in Notes.",
-        "type": "multi_app",
-        "category": "information_research_and_summarization",
-        "apps": [
-            "X",
-            "Notes"
-        ]
-    },
-]
-
-
 ### For debugging ###
 ENABLE_PDB = False
 def pdb_hook():
@@ -856,7 +929,7 @@ def main():
     parser.add_argument("--setting", type=str, default="individual") # individual or curriculum
     parser.add_argument("--future_tasks_visible", action="store_true", default=False)
     parser.add_argument("--reset_phone_state", action="store_true", default=True)
-    parser.add_argument("--max_itr", type=str, default=None)
+    parser.add_argument("--max_itr", type=int, default=30)
 
     args = parser.parse_args()
     torch.manual_seed(args.seed)
@@ -906,7 +979,7 @@ def main():
                 shutil.copy(args.specified_shortcuts_path, persistent_shortcuts_path)
             else:
                 with open(persistent_shortcuts_path, "w") as f:
-                    json.dump(INIT_SHORTCUTS, f)
+                    json.dump(INIT_SHORTCUTS, f, indent=4)
         else:
             raise ValueError("Invalid setting:", args.setting)
         

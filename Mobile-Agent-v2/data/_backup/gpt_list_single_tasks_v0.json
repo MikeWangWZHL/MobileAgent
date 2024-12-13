@@ -1,7 +1,7 @@
 {
     "information_research_and_summarization": [
         {
-            "task_description": "Find the top-rated fitness apps with a free trial and summarize their features in Notes.",
+            "instruction": "Find the top-rated fitness apps with a free trial and summarize their features in Notes.",
             "type": "multi_app",
             "apps": [
                 "Chrome",
@@ -9,7 +9,7 @@
             ]
         },
         {
-            "task_description": "Compile a list of trending books on TikTok and Instagram and summarize reviews in Notes.",
+            "instruction": "Compile a list of trending books on TikTok and Instagram and summarize reviews in Notes.",
             "type": "multi_app",
             "apps": [
                 "TikTok",
@@ -18,7 +18,7 @@
             ]
         },
         {
-            "task_description": "Find the weather forecast for the next week and create a summary with recommendations for outdoor activities.",
+            "instruction": "Find the weather forecast for the next week and create a summary with recommendations for outdoor activities.",
             "type": "multi_app",
             "apps": [
                 "Google",
@@ -26,7 +26,7 @@
             ]
         },
         {
-            "task_description": "Research upcoming tech conferences in my area and create a list with registration deadlines.",
+            "instruction": "Research upcoming tech conferences in my area and create a list with registration deadlines.",
             "type": "multi_app",
             "apps": [
                 "Chrome",
@@ -34,7 +34,7 @@
             ]
         },
         {
-            "task_description": "Check news about space exploration and compile the most exciting updates.",
+            "instruction": "Check news about space exploration and compile the most exciting updates.",
             "type": "multi_app",
             "apps": [
                 "Google",
@@ -42,7 +42,7 @@
             ]
         },
         {
-            "task_description": "Find YouTube tutorials on improving time management and summarize their key points.",
+            "instruction": "Find YouTube tutorials on improving time management and summarize their key points.",
             "type": "multi_app",
             "apps": [
                 "YouTube",
@@ -50,7 +50,7 @@
             ]
         },
         {
-            "task_description": "Locate and summarize articles about sustainable travel tips.",
+            "instruction": "Locate and summarize articles about sustainable travel tips.",
             "type": "multi_app",
             "apps": [
                 "Chrome",
@@ -58,7 +58,7 @@
             ]
         },
         {
-            "task_description": "Find popular investment strategies on Google and summarize the findings.",
+            "instruction": "Find popular investment strategies on Google and summarize the findings.",
             "type": "multi_app",
             "apps": [
                 "Google",
@@ -66,7 +66,7 @@
             ]
         },
         {
-            "task_description": "Discover recent fashion trends on Lemon8 and summarize them in Notes.",
+            "instruction": "Discover recent fashion trends on Lemon8 and summarize them in Notes.",
             "type": "multi_app",
             "apps": [
                 "Lemon8",
@@ -74,7 +74,7 @@
             ]
         },
         {
-            "task_description": "Research the history of the Eiffel Tower and create a detailed summary.",
+            "instruction": "Research the history of the Eiffel Tower and create a detailed summary.",
             "type": "single_app",
             "apps": [
                 "Google"
@@ -83,7 +83,7 @@
     ],
     "routine_management": [
         {
-            "task_description": "Organize my contacts by adding missing details like emails and birthdays from Gmail.",
+            "instruction": "Organize my contacts by adding missing details like emails and birthdays from Gmail.",
             "type": "multi_app",
             "apps": [
                 "Contacts",
@@ -91,14 +91,14 @@
             ]
         },
         {
-            "task_description": "Review my calendar and suggest times for breaks based on meeting density.",
+            "instruction": "Review my calendar and suggest times for breaks based on meeting density.",
             "type": "single_app",
             "apps": [
                 "Calendar"
             ]
         },
         {
-            "task_description": "Check my Google Maps history and suggest the most efficient routes for daily commutes.",
+            "instruction": "Check my Google Maps history and suggest the most efficient routes for daily commutes.",
             "type": "multi_app",
             "apps": [
                 "Maps",
@@ -106,14 +106,14 @@
             ]
         },
         {
-            "task_description": "Automatically unsubscribe from promotional emails.",
+            "instruction": "Automatically unsubscribe from promotional emails.",
             "type": "single_app",
             "apps": [
                 "Gmail"
             ]
         },
         {
-            "task_description": "Set reminders for upcoming subscription renewals based on emails.",
+            "instruction": "Set reminders for upcoming subscription renewals based on emails.",
             "type": "multi_app",
             "apps": [
                 "Gmail",
@@ -121,7 +121,7 @@
             ]
         },
         {
-            "task_description": "Create a weekly task list based on recurring habits and meetings.",
+            "instruction": "Create a weekly task list based on recurring habits and meetings.",
             "type": "multi_app",
             "apps": [
                 "Calendar",
@@ -129,21 +129,21 @@
             ]
         },
         {
-            "task_description": "Identify emails with attachments and organize them into folders based on the file type.",
+            "instruction": "Identify emails with attachments and organize them into folders based on the file type.",
             "type": "single_app",
             "apps": [
                 "Gmail"
             ]
         },
         {
-            "task_description": "Find and delete duplicate contacts in my phone book.",
+            "instruction": "Find and delete duplicate contacts in my phone book.",
             "type": "single_app",
             "apps": [
                 "Contacts"
             ]
         },
         {
-            "task_description": "Summarize the past month’s events from my calendar and notes.",
+            "instruction": "Summarize the past month’s events from my calendar and notes.",
             "type": "multi_app",
             "apps": [
                 "Calendar",
@@ -151,7 +151,7 @@
             ]
         },
         {
-            "task_description": "Backup all my Notes to Google Drive.",
+            "instruction": "Backup all my Notes to Google Drive.",
             "type": "multi_app",
             "apps": [
                 "Notes",
@@ -161,7 +161,7 @@
     ],
     "online_shopping_and_deal_hunting": [
         {
-            "task_description": "Find the best deals on noise-canceling headphones on Amazon, Best Buy, and Walmart.",
+            "instruction": "Find the best deals on noise-canceling headphones on Amazon, Best Buy, and Walmart.",
             "type": "multi_app",
             "apps": [
                 "Amazon Shopping",
@@ -170,7 +170,7 @@
             ]
         },
         {
-            "task_description": "Track the price drop for a PlayStation 5 across shopping apps and notify me.",
+            "instruction": "Track the price drop for a PlayStation 5 across shopping apps and notify me.",
             "type": "multi_app",
             "apps": [
                 "Amazon Shopping",
@@ -179,14 +179,14 @@
             ]
         },
         {
-            "task_description": "Check reviews for the latest smartwatches on Amazon and summarize pros and cons.",
+            "instruction": "Check reviews for the latest smartwatches on Amazon and summarize pros and cons.",
             "type": "single_app",
             "apps": [
                 "Amazon Shopping"
             ]
         },
         {
-            "task_description": "Compare bulk grocery prices across Amazon and Walmart and create a shopping list.",
+            "instruction": "Compare bulk grocery prices across Amazon and Walmart and create a shopping list.",
             "type": "multi_app",
             "apps": [
                 "Amazon Shopping",
@@ -194,14 +194,14 @@
             ]
         },
         {
-            "task_description": "Find ongoing sales and discounts on outdoor camping gear.",
+            "instruction": "Find ongoing sales and discounts on outdoor camping gear.",
             "type": "single_app",
             "apps": [
                 "Amazon Shopping"
             ]
         },
         {
-            "task_description": "Search for flight deals for a vacation to Hawaii in the next three months.",
+            "instruction": "Search for flight deals for a vacation to Hawaii in the next three months.",
             "type": "multi_app",
             "apps": [
                 "Chrome",
@@ -209,7 +209,7 @@
             ]
         },
         {
-            "task_description": "Locate limited-time offers on electronics from newsletters and summarize them.",
+            "instruction": "Locate limited-time offers on electronics from newsletters and summarize them.",
             "type": "multi_app",
             "apps": [
                 "Gmail",
@@ -217,14 +217,14 @@
             ]
         },
         {
-            "task_description": "Find the best-reviewed robot vacuum under $300 on Amazon and summarize comparisons.",
+            "instruction": "Find the best-reviewed robot vacuum under $300 on Amazon and summarize comparisons.",
             "type": "single_app",
             "apps": [
                 "Amazon Shopping"
             ]
         },
         {
-            "task_description": "Search for eco-friendly gift options under $50 and suggest the top three.",
+            "instruction": "Search for eco-friendly gift options under $50 and suggest the top three.",
             "type": "multi_app",
             "apps": [
                 "Amazon Shopping",
@@ -232,7 +232,7 @@
             ]
         },
         {
-            "task_description": "Compare student discounts on laptops from Walmart, Best Buy, and Amazon.",
+            "instruction": "Compare student discounts on laptops from Walmart, Best Buy, and Amazon.",
             "type": "multi_app",
             "apps": [
                 "Walmart",
@@ -243,14 +243,14 @@
     ],
     "entertainment_and_recreation": [
         {
-            "task_description": "Suggest the top 10 trending YouTube channels for tech enthusiasts.",
+            "instruction": "Suggest the top 10 trending YouTube channels for tech enthusiasts.",
             "type": "single_app",
             "apps": [
                 "YouTube"
             ]
         },
         {
-            "task_description": "Find Instagram posts of popular weekend getaways near my city and summarize the best options.",
+            "instruction": "Find Instagram posts of popular weekend getaways near my city and summarize the best options.",
             "type": "multi_app",
             "apps": [
                 "Instagram",
@@ -258,7 +258,7 @@
             ]
         },
         {
-            "task_description": "Plan a virtual movie night by finding movies available on YouTube and creating a schedule.",
+            "instruction": "Plan a virtual movie night by finding movies available on YouTube and creating a schedule.",
             "type": "multi_app",
             "apps": [
                 "YouTube",
@@ -266,7 +266,7 @@
             ]
         },
         {
-            "task_description": "Search for hiking trails nearby using Maps and compile a list with difficulty levels.",
+            "instruction": "Search for hiking trails nearby using Maps and compile a list with difficulty levels.",
             "type": "multi_app",
             "apps": [
                 "Maps",
@@ -274,14 +274,14 @@
             ]
         },
         {
-            "task_description": "Find trending dance challenges on TikTok and suggest tutorials to participate.",
+            "instruction": "Find trending dance challenges on TikTok and suggest tutorials to participate.",
             "type": "single_app",
             "apps": [
                 "TikTok"
             ]
         },
         {
-            "task_description": "Discover live music events happening this month and add them to my calendar.",
+            "instruction": "Discover live music events happening this month and add them to my calendar.",
             "type": "multi_app",
             "apps": [
                 "Google",
@@ -289,14 +289,14 @@
             ]
         },
         {
-            "task_description": "Summarize the best holiday travel destinations based on blogs on REDnote.",
+            "instruction": "Summarize the best holiday travel destinations based on blogs on REDnote.",
             "type": "single_app",
             "apps": [
                 "REDnote"
             ]
         },
         {
-            "task_description": "Check for trending DIY art projects on Lemon8 and make a list of supplies needed.",
+            "instruction": "Check for trending DIY art projects on Lemon8 and make a list of supplies needed.",
             "type": "multi_app",
             "apps": [
                 "Lemon8",
@@ -304,7 +304,7 @@
             ]
         },
         {
-            "task_description": "Find reviews of upcoming theater plays in my area and recommend the best ones.",
+            "instruction": "Find reviews of upcoming theater plays in my area and recommend the best ones.",
             "type": "multi_app",
             "apps": [
                 "Chrome",
@@ -312,7 +312,7 @@
             ]
         },
         {
-            "task_description": "Locate the best-reviewed cafes for live jazz in my city and create a list.",
+            "instruction": "Locate the best-reviewed cafes for live jazz in my city and create a list.",
             "type": "multi_app",
             "apps": [
                 "Maps",

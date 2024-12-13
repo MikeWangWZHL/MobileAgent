@@ -1,0 +1,52 @@
+{
+    "length": 5,
+    "scenario": "TRAVEL_PLANNING",
+    "scenario_id": 5,
+    "tasks": [
+        {
+            "task_id": "5_cheap_flights_newyork",
+            "instruction": "Find the cheapest round-trip flight from Chicago to New York City in the next month on Booking. Stop at the screen showing the best deal.",
+            "type": "single_app",
+            "apps": [
+                "Booking"
+            ]
+        },
+        {
+            "task_id": "5_things_to_do_la",
+            "instruction": "Suggest some interesting things to do in LA. Find the top 3 attractions on Tripadvisor. Save the list in Notes.",
+            "type": "multi_app",
+            "apps": [
+                "Tripadvisor",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "5_palo_alto_tour",
+            "instruction": "Plan a one-day itinerary for Palo Alto, CA using Tripadvisor. Choose the attractions and dining recommendations, but keep in mind that I don't like seafood and I love museums. Write the plan in Notes.",
+            "type": "multi_app",
+            "apps": [
+                "Tripadvisor",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "5_hotel_champaign",
+            "instruction": "Help me find a hotel in Champaign, IL on Booking that is under $200 for a queen bed. Make sure that the rating is higher than 7.0. Double check on Maps to see if it is close to the Green Street. Show me your final choice on Booking.",
+            "type": "multi_app",
+            "apps": [
+                "Booking",
+                "Maps"
+            ]
+        },
+        {
+            "task_id": "5_local_food_chicago",
+            "instruction": "Find a highly recommended local restaurant in Chicago on Tripadvisor. Check Lemon8 for posts about must-try dishes there and summarize in Notes.",
+            "type": "multi_app",
+            "apps": [
+                "Tripadvisor",
+                "Lemon8",
+                "Notes"
+            ]
+        }
+    ]
+}

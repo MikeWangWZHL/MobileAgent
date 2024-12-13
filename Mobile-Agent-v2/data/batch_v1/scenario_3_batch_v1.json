@@ -1,0 +1,51 @@
+{
+    "length": 5,
+    "scenario": "ONLINE_SHOPPING",
+    "scenario_id": 3,
+    "tasks": [
+        {
+            "task_id": "3_oled_tv",
+            "instruction": "Find the best deal on a 55-inch 4K OLED TV at Best Buy. Stop at the screen displaying the best deal you find.",
+            "type": "single_app",
+            "apps": [
+                "Best Buy"
+            ]
+        },
+        {
+            "task_id": "3_laptop_nvidia_gpu",
+            "instruction": "Find me a laptop on Amazon that is under $1000 with an Nvidia GPU and more than 8GB RAM.",
+            "type": "single_app",
+            "apps": [
+                "Amazon Shopping"
+            ]
+        },
+        {
+            "task_id": "3_ninja_air_fryer",
+            "instruction": "Compare the price of a Ninja air fryer 8 qt at Walmart and Amazon. Stop at the screen displaying the best deal you find.",
+            "type": "multi_app",
+            "apps": [
+                "Amazon Shopping",
+                "Walmart"
+            ]
+        },
+        {
+            "task_id": "3_walmart_sale_items",
+            "instruction": "Check if any of the following items are on sale at Walmart: ribeye steak, fresh oranges, or toilet paper. If any are on sale, add a note in Notes with their prices.",
+            "type": "multi_app",
+            "apps": [
+                "Walmart",
+                "Notes"
+            ]
+        },
+        {
+            "task_id": "3_nintendo_switch_joy_con",
+            "instruction": "I want to buy a brand-new Nintendo Switch Joy-Con. Any color is fine. Please compare the prices on Amazon, Walmart, and Best Buy. Find the cheapest option and stop at the screen where I can add it to the cart.",
+            "type": "multi_app",
+            "apps": [
+                "Amazon Shopping",
+                "Best Buy",
+                "Walmart"
+            ]
+        }
+    ]
+}
