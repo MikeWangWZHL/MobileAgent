@@ -1,0 +1,61 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation (useful for searching or sending messages).",
+        "precondition": "There is a text input box on the screen.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Create_New_Note": {
+        "name": "Create_New_Note",
+        "arguments": [
+            "app_name",
+            "text"
+        ],
+        "description": "Open the Notes app, create a new note, and type the specified text into it.",
+        "precondition": "The Notes app is installed and visible on the Home or App screen.",
+        "atomic_action_sequence": [
+            {
+                "name": "Open_App",
+                "arguments_map": {
+                    "app_name": "app_name"
+                }
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": 932,
+                    "y": 2055
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            }
+        ]
+    }
+}

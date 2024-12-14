@@ -137,7 +137,7 @@ def clear_background_and_back_to_home(adb_path):
     home(adb_path)
 
 def clear_notes(adb_path):
-    # notes package name: com.samsung.android.app.notes
+    # # notes package name: com.samsung.android.app.notes
     home(adb_path)
     sleep(1.5)
 
@@ -166,9 +166,35 @@ def clear_notes(adb_path):
     tap(adb_path, 723, 2056)
     sleep(2)
 
-    clear_background_and_back_to_home(adb_path)
-    
-    
+    # command = adb_path + f" shell pm clear com.samsung.android.app.notes"
+    # subprocess.run(command, capture_output=True, text=True, shell=True)
+
+
+APP_PACKAGE_LIST=[
+    "com.walmart.android",
+    "com.samsung.android.app.notes",
+    "com.bd.nproject",
+    "com.zhiliaoapp.musically",
+    "com.amazon.mShop.android.shopping",
+    "com.samsung.android.app.reminder",
+    "com.google.android.calendar",
+    "com.fandango",
+    "com.tripadvisor.tripadvisor",
+    "com.whatsapp",
+    "com.twitter.android",
+    "com.mcdonalds.app",
+    "com.sec.android.app.kidshome",
+    "com.sec.android.app.clockpackage",
+    "com.booking",
+    "com.bestbuy.android",
+    "com.google.android.youtube",
+    "com.google.android.apps.maps",
+    "com.google.android.calendar",
+    "com.android.chrome",
+    "com.google.android.gm",
+    "com.google.android.googlequicksearchbox"
+]
+
 def clear_processes(adb_path, device=None):
     ## 华为
     # command = adb_path + (f" -s {device}" if device is not None else '') + \
@@ -179,6 +205,18 @@ def clear_processes(adb_path, device=None):
     #           f" shell am force-stop $( {adb_path} shell dumpsys activity activities | grep topResumedActivity | awk '{{print $3}}' | cut -d '/' -f 1)"
     
     ## Samsung
-    command = adb_path + (f" -s {device}" if device is not None else '') + \
-              f" shell am force-stop $( {adb_path} shell dumpsys activity activities | grep topResumedActivity | awk '{{print $3}}' | cut -d '/' -f 1)"
-    subprocess.run(command, capture_output=True, text=True, shell=True)
+    # command = adb_path + (f" -s {device}" if device is not None else '') + \
+    #           f" shell am force-stop $( {adb_path} shell dumpsys activity activities | grep topResumedActivity | awk '{{print $3}}' | cut -d '/' -f 1)"
+    # subprocess.run(command, capture_output=True, text=True, shell=True)
+    
+    for app in APP_PACKAGE_LIST:
+        command = adb_path + f" shell am force-stop {app}"
+        subprocess.run(command, capture_output=True, text=True, shell=True)
+        pass
+
+
+def reset_everything(adb_path):
+    clear_processes(adb_path=adb_path)
+    clear_background_and_back_to_home(adb_path=adb_path)
+    clear_notes(adb_path=adb_path)
+    clear_background_and_back_to_home(adb_path=adb_path)

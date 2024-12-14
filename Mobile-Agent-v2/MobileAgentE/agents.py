@@ -462,6 +462,9 @@ class Executor(BaseAgent):
                     name_coordinate = [int((coordinate[ti][0] + coordinate[ti][2])/2), int((coordinate[ti][1] + coordinate[ti][3])/2)]
                     tap(adb_path, name_coordinate[0], name_coordinate[1]- int(coordinate[ti][3] - coordinate[ti][1]))# 
                     break
+            if app_name in ['Fandango', 'Walmart', 'Best Buy']:
+                # additional wait time for app loading
+                time.sleep(10)
             time.sleep(10)
         
         elif "Tap".lower() == action.lower():
@@ -481,7 +484,7 @@ class Executor(BaseAgent):
 
         elif "Enter".lower() == action.lower():
             enter(adb_path)
-            time.sleep(8)
+            time.sleep(10)
 
         elif "Back".lower() == action.lower():
             back(adb_path)

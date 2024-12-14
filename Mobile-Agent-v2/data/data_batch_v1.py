@@ -7,32 +7,32 @@ scenario_1_groups_1 = {
   "scenario_id": Scenario.RESTAURANT_RECOMMENDATION.value,
   "tasks": [
       {
-          "task_id": "1_late_night_korean",
-          "instruction": "Find the best-rated late-night Korean restaurant in Champaign, IL that opens beyond 9pm.",
+          "task_id": "1_late_night_korean_food",
+          "instruction": "Find the best-rated late-night Korean restaurant in Champaign, IL that opens beyond 9pm on Google Maps.",
           "type": "single_app",
           "apps": ["Maps"],
       },
       {
           "task_id": "1_nearest_bakery",
-          "instruction": "Get directions to the nearest Bakery that has a rating higher than 4.0 in Google Maps.",
+          "instruction": "Get directions to the nearest Bakery that has a rating higher than 4.0 on Google Maps. Stop at the screen showing the route.",
           "type": "single_app",
           "apps": ["Maps"]
       },
       {
           "task_id": "1_thai_duck",
-          "instruction": "Find the best-rated Thai restaurant in Urbana, IL that serves duck cuisine. Review customer comments and compile a summary of positive and negative feedback in Notes.",
+          "instruction": "Find the best-rated Thai restaurant in Urbana, IL that serves duck cuisine on Google Maps. Review customer comments and compile a summary of positive and negative feedback in Notes.",
           "type": "multi_app",
           "apps": ["Maps", "Notes"]
       },
       {
           "task_id": "1_bakery_birthday_cake",
-          "instruction": "Find me a Bakery that is within 10min drive near me and does birthday cakes. Find the phone number and create a new note in Notes for that.",
+          "instruction": "Find a Bakery near me and does birthday cakes on Google Maps. Find the phone number and create a new note in Notes for that.",
           "type": "multi_app",
           "apps": ["Maps", "Notes"]
       },
       {
           "task_id": "1_chinese_ohare",
-          "instruction": "Find me a popular Chinese restaurant near Chicago O'Hare airport. Check X for recent posts about their signature dishes and write a summary in Notes. Then get directions to the restaurant in Maps.",
+          "instruction": "Find me a popular Chinese restaurant near Chicago O'Hare airport on Google Maps. Check X for recent posts about their signature dishes and write a summary in Notes. Then get directions to that restaurant on Google Maps. Stop at the screen showing the route.",
           "type": "multi_app",
           "apps": ["Maps", "X", "Notes"]
       }
@@ -48,33 +48,33 @@ scenario_2_groups_1 = {
     "tasks": [
         {
             "task_id": "2_segment_anything_cited",
-            "instruction": "On Google Scholar, find the most-cited paper that cites the paper 'Segment Anything' but is not a survey. Open the PDF of the paper you find and stop there.",
+            "instruction": "Find the most-cited paper that cites the paper 'Segment Anything' on Google Scholar. Stop at the screen showing the paper abstract.",
             "type": "single_app",
             "apps": ["Chrome"]
         },
         {
             "task_id": "2_llm_agents_survey",
-            "instruction": "Find at least three representative survey papers on LLM agents and add their titles to the Notes.",
+            "instruction": "Find at least three representative survey papers on LLM agents on Google Scholar, and add their titles to the Notes.",
             "type": "multi_app",
             "apps": ["Chrome", "Notes"]
         },
         {
+            "task_id": "2_headphones_reviews",
+            "instruction": "Find three detailed user reviews of the Bose QC45 headphones from Amazon. Summarize the general sentiment in the Notes.",
+            "type": "multi_app",
+            "apps": ["Amazon", "Notes"]
+        },
+        {
             "task_id": "2_recipes_chinese",
-            "instruction": "I have some onions, beef, and potatoes in my refrigerator. Can you find me a Chinese-style recipe that uses all three ingredients and can be prepared in under an hour? And find me a video tutorial on YouTube for that.",
+            "instruction": "I have some onions, beef, and potatoes in my refrigerator. Can you find me a Chinese-style recipe that uses all three ingredients and can be prepared in under an hour? And find me a video tutorial on YouTube for that. Stop at the screen displaying the video.",
             "type": "multi_app",
             "apps": ["Chrome", "YouTube"]
         },
         {
             "task_id": "2_mcdonalds_deals",
-            "instruction": "Can you check the MacDonald's APP to see if there are any Rewards or Deals including Spicy McCrispy. If so, help me add that to Mobile Order (Do not pay yet, I will do it myself). And then check the pickup location and get directions in Maps.",
+            "instruction": "Can you check the MacDonald's APP to see if there are any Rewards or Deals including Spicy McCrispy. If so, help me add that to Mobile Order (Do not pay yet, I will do it myself). And then check the pickup location and get directions on Google Maps. Stop at the screen showing the route.",
             "type": "multi_app",
             "apps": ["McDonald's", "Maps"]
-        },
-        {
-            "task_id": "2_headphones_reviews",
-            "instruction": "Find three detailed user reviews of the Bose QC45 headphones from Amazon and other tech review sites. Summarize the general sentiment in the Notes.",
-            "type": "multi_app",
-            "apps": ["Amazon", "Chrome", "Notes"]
         }
     ]
 }
@@ -127,13 +127,13 @@ scenario_4_groups_1 = {
     "tasks": [
         {
             "task_id": "4_x_back_myth_wukong",
-            "instruction": "Find the top posts about the game 'Black Myth Wukong' on X and summarize the key highlights in Notes.",
+            "instruction": "Find the top posts about the game 'Black Myth Wukong' on \"X\" and summarize the key highlights in Notes.",
             "type": "multi_app",
             "apps": ["X", "Notes"]
         },
         {
             "task_id": "4_x_trending_news",
-            "instruction": "Check the top 3 trending news on X. Read a few posts to figure out what's happening. And create a new Note to summarize your findings.",
+            "instruction": "Check the top 3 trending news on \"X\". Read a few posts to figure out what's happening. And create a new Note to summarize your findings.",
             "type": "multi_app",
             "apps": ["X", "Notes"]
         },
@@ -184,16 +184,16 @@ scenario_5_groups_1 = {
             "apps": ["Tripadvisor", "Notes"]
         },
         {
-            "task_id": "5_hotel_champaign",
-            "instruction": "Help me find a hotel in Champaign, IL on Booking that is under $200 for a queen bed. Make sure that the rating is higher than 7.0. Double check on Maps to see if it is close to the Green Street. Show me your final choice on Booking.",
+            "task_id": "5_local_food_chicago",
+            "instruction": "Find a highly recommended local restaurant in Chicago on Tripadvisor. Check the reviews about must-try dishes and summarize in Notes.",
             "type": "multi_app",
-            "apps": ["Booking", "Maps"]
+            "apps": ["Tripadvisor", "Notes"]
         },
         {
-            "task_id": "5_local_food_chicago",
-            "instruction": "Find a highly recommended local restaurant in Chicago on Tripadvisor. Check Lemon8 for posts about must-try dishes there and summarize in Notes.",
+            "task_id": "5_hotel_champaign",
+            "instruction": "Help me find a hotel in Champaign, IL on Booking that is under $200 for a queen bed. Make sure that the rating is higher than 7.0. Double check on Google Maps to see if it is close to the Green Street. Show me your final choice on Booking.",
             "type": "multi_app",
-            "apps": ["Tripadvisor", "Lemon8", "Notes"]
+            "apps": ["Booking", "Maps"]
         }
   ]
 }

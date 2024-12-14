@@ -12,3 +12,5 @@ __pycache__/
 */usage/*
 Mobile-Agent-v2/log/*
 Mobile-Agent-v2/usage/*
+screenshot*
+*.mp4

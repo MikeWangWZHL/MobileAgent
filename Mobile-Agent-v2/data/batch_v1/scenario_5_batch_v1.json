@@ -30,22 +30,21 @@
             ]
         },
         {
+            "task_id": "5_local_food_chicago",
+            "instruction": "Find a highly recommended local restaurant in Chicago on Tripadvisor. Check the reviews about must-try dishes and summarize in Notes.",
+            "type": "multi_app",
+            "apps": [
+                "Tripadvisor",
+                "Notes"
+            ]
+        },
+        {
             "task_id": "5_hotel_champaign",
-            "instruction": "Help me find a hotel in Champaign, IL on Booking that is under $200 for a queen bed. Make sure that the rating is higher than 7.0. Double check on Maps to see if it is close to the Green Street. Show me your final choice on Booking.",
+            "instruction": "Help me find a hotel in Champaign, IL on Booking that is under $200 for a queen bed. Make sure that the rating is higher than 7.0. Double check on Google Maps to see if it is close to the Green Street. Show me your final choice on Booking.",
             "type": "multi_app",
             "apps": [
                 "Booking",
                 "Maps"
-            ]
-        },
-        {
-            "task_id": "5_local_food_chicago",
-            "instruction": "Find a highly recommended local restaurant in Chicago on Tripadvisor. Check Lemon8 for posts about must-try dishes there and summarize in Notes.",
-            "type": "multi_app",
-            "apps": [
-                "Tripadvisor",
-                "Lemon8",
-                "Notes"
             ]
         }
     ]

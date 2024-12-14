@@ -31,7 +31,7 @@
         },
         {
             "task_id": "2_mcdonalds_deals",
-            "instruction": "Can you check the MacDonald's APP to see if there are any Rewards or Deals including Spicy McCrispy. If so, help me add that to Mobile Order (Do not pay yet, I will do it myself). And then check the pickup location and get directions in Maps.",
+            "instruction": "Can you check the MacDonald's APP to see if there are any Rewards or Deals including Spicy McCrispy. If so, help me add that to Mobile Order (Do not pay yet, I will do it myself). And then check the pickup location and get directions on Google Maps.",
             "type": "multi_app",
             "apps": [
                 "McDonald's",

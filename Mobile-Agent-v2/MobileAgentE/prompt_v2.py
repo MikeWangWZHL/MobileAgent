@@ -55,15 +55,18 @@ def get_action_prompt(instruction, clickable_infos, width, height, keyboard, sum
     
     prompt += "### Response requirements ###\n"
     prompt += "Now you need to combine all of the above to perform just one action on the current page. You must choose one of the six actions below:\n"
-    prompt += "Open app (app name): If the current page is desktop, you can use this action to open the app named \"app name\" on the desktop.\n"
+    prompt += "Open_App (app name): If the current page is desktop, you can use this action to open the app named \"app name\" on the desktop.\n"
     prompt += "Tap (x, y): Tap the position (x, y) in current page.\n"
     prompt += "Swipe (x1, y1), (x2, y2): Swipe from position (x1, y1) to position (x2, y2).\n"
     if keyboard:
         prompt += "Type (text): Type the \"text\".\n"
-        prompt += "Type_and_Enter (text): Type the \"text\" followed by an Enter operation (useful for searching).\n"
     else:
         prompt += "Unable to Type. You cannot use the actions involving \"Type\" because the keyboard has not been activated. If you want to type, please first activate the keyboard by tapping on the input box on the screen.\n"
+    prompt += "Enter: Press the Enter key.\n"
+    prompt += "Switch_App: Show the App switcher for switching between opened apps.\n"
+    prompt += "Back: Return to the previous state.\n"
     prompt += "Home: Return to home page.\n"
+    prompt += "Wait: Wait for 10 seconds to give more time for a page loading.\n"
     prompt += "Stop: If you think all the requirements of user\'s instruction have been completed and no further operation is required, you can choose this action to terminate the operation process."
     prompt += "\n\n"
     
