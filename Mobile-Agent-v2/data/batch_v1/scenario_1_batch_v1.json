@@ -13,7 +13,7 @@
         },
         {
             "task_id": "1_nearest_bakery",
-            "instruction": "Get directions to the nearest Bakery that has a rating higher than 4.0 on Google Maps.",
+            "instruction": "Get directions to the nearest Bakery that has a rating higher than 4.0 on Google Maps. Stop at the screen showing the route.",
             "type": "single_app",
             "apps": [
                 "Maps"
@@ -39,7 +39,7 @@
         },
         {
             "task_id": "1_chinese_ohare",
-            "instruction": "Find me a popular Chinese restaurant near Chicago O'Hare airport on Google Maps. Check X for recent posts about their signature dishes and write a summary in Notes. Then get directions to the restaurant on Google Maps.",
+            "instruction": "Find me a popular Chinese restaurant near Chicago O'Hare airport on Google Maps. Check X for recent posts about their signature dishes and write a summary in Notes. Then get directions to that restaurant on Google Maps. Stop at the screen showing the route.",
             "type": "multi_app",
             "apps": [
                 "Maps",

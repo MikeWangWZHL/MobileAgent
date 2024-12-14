@@ -1,3 +1,3 @@
-bash run_agent_mobile_agent_v2.sh
+# bash run_agent_mobile_agent_v2.sh
 bash run_agent_E_individual.sh
 bash run_agent_E_curriculum.sh

@@ -69,7 +69,7 @@ def save_screenshot_to_file(adb_path, file_path="screenshot.png"):
     
     except Exception as e:
         print(str(e))
-        raise
+        return None
 
 
 def tap(adb_path, x, y):
@@ -136,6 +136,52 @@ def clear_background_and_back_to_home(adb_path):
     sleep(2)
     home(adb_path)
 
+
+def check_pixel_color(
+        image_path, x, y, 
+        target_color_1_name = "all_off",
+        target_color_2_name = "all_on",
+        target_color_1 = [1, 1, 1], # black 
+        target_color_2 = [242, 101, 73] # red
+    ):
+    """
+    Loads an image and checks the color of a pixel at (x, y).
+    Determines whether the pixel color is closer to red or black.
+
+    Args:
+        image_path (str): Path to the image file.
+        x (int): X-coordinate of the pixel.
+        y (int): Y-coordinate of the pixel.
+
+    Returns:
+        str: 'red' if the pixel color is closer to red, 'black' if closer to black.
+    """
+    # Load the image
+    try:
+        image = Image.open(image_path)
+    except FileNotFoundError:
+        return "Image not found. Please check the path."
+
+    # Ensure the coordinates are within the image bounds
+    width, height = image.size
+    if not (0 <= x < width and 0 <= y < height):
+        return "Pixel coordinates are out of bounds."
+
+    # Get the RGB value of the pixel
+    rgb = image.convert('RGB').getpixel((x, y))
+
+    print(rgb)
+    target_color_1_distance = ((rgb[0] - target_color_1[0])**2 + (rgb[1] - target_color_1[1])**2 + (rgb[2] - target_color_1[2])**2)**0.5
+    target_color_2_distance = ((rgb[0] - target_color_2[0])**2 + (rgb[1] - target_color_2[1])**2 + (rgb[2] - target_color_2[2])**2)**0.5
+
+    # Determine closer color
+    if target_color_1_distance < target_color_2_distance:
+        return target_color_1_name
+    else:
+        return target_color_2_name
+
+
+
 def clear_notes(adb_path):
     # # notes package name: com.samsung.android.app.notes
     home(adb_path)
@@ -154,9 +200,19 @@ def clear_notes(adb_path):
     tap(adb_path, 642, 827)
     sleep(2)
 
-    # tap all
-    tap(adb_path, 92, 799)
-    sleep(2)
+    # check if the all toggle is on
+    image_path = save_screenshot_to_file(adb_path, "./screenshot_for_checking.png")
+    if image_path is not None:
+        toggle_status = check_pixel_color(
+            image_path, 97, 783, 
+            target_color_1_name="all_off", target_color_2_name="all_on",
+            target_color_1=[1, 1, 1], target_color_2=[242, 101, 73]
+        )
+        print(toggle_status)
+        if toggle_status == "all_off":
+            # tap all
+            tap(adb_path, 92, 799)
+            sleep(2)
 
     # tap delete
     tap(adb_path, 751, 2102)

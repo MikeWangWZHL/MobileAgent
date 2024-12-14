@@ -26,7 +26,7 @@ scenario_1_groups_1 = {
       },
       {
           "task_id": "1_bakery_birthday_cake",
-          "instruction": "Find a Bakery near me and does birthday cakes on Google Maps. Find the phone number and create a new note in Notes for that.",
+          "instruction": "Find me a Bakery that is within 10min drive near me and does birthday cakes on Google Maps. Find the phone number and create a new note in Notes for that.",
           "type": "multi_app",
           "apps": ["Maps", "Notes"]
       },

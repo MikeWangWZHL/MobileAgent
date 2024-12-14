@@ -5,7 +5,7 @@
     "tasks": [
         {
             "task_id": "4_x_back_myth_wukong",
-            "instruction": "Find the top posts about the game 'Black Myth Wukong' on X and summarize the key highlights in Notes.",
+            "instruction": "Find the top posts about the game 'Black Myth Wukong' on \"X\" and summarize the key highlights in Notes.",
             "type": "multi_app",
             "apps": [
                 "X",
@@ -14,7 +14,7 @@
         },
         {
             "task_id": "4_x_trending_news",
-            "instruction": "Check the top 3 trending news on X. Read a few posts to figure out what's happening. And create a new Note to summarize your findings.",
+            "instruction": "Check the top 3 trending news on \"X\". Read a few posts to figure out what's happening. And create a new Note to summarize your findings.",
             "type": "multi_app",
             "apps": [
                 "X",

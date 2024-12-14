@@ -494,7 +494,7 @@ def run_single_task(
                 json.dump(steps, f, indent=4)
 
     ### Important general instructions for safety ###
-    additional_knowledge = FORCE_ADDED + "\n" + additional_knowledge
+    additional_knowledge = FORCE_ADDED + additional_knowledge
 
     # init info pool
     info_pool = InfoPool(
@@ -595,7 +595,21 @@ def run_single_task(
         ## max repetitive actions stop ##
         if len(info_pool.action_history) >= max_repetitive_actions:
             last_k_actions = info_pool.action_history[-max_repetitive_actions:]
-            if len(set(last_k_actions)) == 1:
+            last_k_actions_set = set()
+            try:
+                for act_obj in last_k_actions:
+                    if "name" in act_obj:
+                        hash_key = act_obj['name']
+                    else:
+                        hash_key = json.dumps(act_obj)
+                    if "arguments" in act_obj:
+                        for arg, value in act_obj['arguments'].items():
+                            hash_key += f"-{arg}-{value}"
+                    print("hashable action key:", hash_key)
+                    last_k_actions_set.add(hash_key)
+            except:
+                pass
+            if len(last_k_actions_set) == 1:
                 print("Repetitive actions reaches the limit. Stopping...")
                 task_end_time = time.time()
                 steps.append({

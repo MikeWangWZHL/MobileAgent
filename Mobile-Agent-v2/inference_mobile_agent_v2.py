@@ -58,7 +58,7 @@ qwen_api = QWEN_API_KEY
 
 # You can add operational knowledge to help Agent operate more accurately.
 # add_info = "If you want to tap an icon of an app, use the action \"Open_App\". If you want to exit an app, use the action \"Home\""
-add_info = FORCE_ADDED + "\n" + INIT_TIPS
+add_info = FORCE_ADDED + INIT_TIPS
 
 # Reflection Setting: If you want to improve the operating speed, you can disable the reflection agent. This may reduce the success rate.
 reflection_switch = True

@@ -1,0 +1,23 @@
+[
+    {
+        "step": 0,
+        "operation": "init",
+        "instruction": "Check if any of the following items are on sale at Walmart: ribeye steak, fresh oranges, or toilet paper. If any are on sale, add a note in Notes with their prices.",
+        "task_id": "3_walmart_sale_items",
+        "run_name": "scenario_3_batch_v1.json-individual",
+        "max_itr": 40,
+        "max_consecutive_failures": 3,
+        "max_repetitive_actions": 3,
+        "log_root": "logs/mobile_agent_v2",
+        "reset_phone_state": true,
+        "perception_args": {
+            "device": "cuda",
+            "caption_call_method": "api",
+            "caption_model": "qwen-vl-plus",
+            "groundingdino_model": "AI-ModelScope/GroundingDINO",
+            "groundingdino_revision": "v1.0.0",
+            "ocr_detection_model": "iic/cv_resnet18_ocr-detection-db-line-level_damo",
+            "ocr_recognition_model": "iic/cv_convnextTiny_ocr-recognition-document_damo"
+        }
+    }
+]
