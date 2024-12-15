@@ -161,12 +161,6 @@ def run_single_task(
     overwrite_log_dir=False,
     **kwargs
 ):
-    
-    ### reset the phone status ###
-    if reset_phone_state:
-        print("INFO: Reseting the phone states to Home and clear Notes and background apps ...\n")
-        reset_everything(ADB_PATH)
-
     ### set up log dir ###
     if task_id is None:
         task_id = time.strftime("%Y%m%d-%H%M%S")
@@ -176,6 +170,12 @@ def run_single_task(
         return
     os.makedirs(f"{log_dir}/screenshots", exist_ok=True)
     log_json_path = f"{log_dir}/steps.json"
+
+
+    ### reset the phone status ###
+    if reset_phone_state:
+        print("INFO: Reseting the phone states to Home and clear Notes and background apps ...\n")
+        reset_everything(ADB_PATH)
 
     thought_history = []
     summary_history = []
@@ -259,19 +259,22 @@ def run_single_task(
         ## repetitive actions stop ##
         if len(action_history) >= max_repetitive_actions:
             last_k_actions = action_history[-max_repetitive_actions:]
-            if len(set(last_k_actions)) == 1:
-                print("Repetitive actions reaches the limit. Stopping...")
-                task_end_time = time.time()
-                steps.append({
-                    "step": iter,
-                    "operation": "finish",
-                    "finish_flag": "max_repetitive_actions",
-                    "max_repetitive_actions": max_repetitive_actions,
-                    "task_duration": task_end_time - task_start_time,
-                })
-                with open(log_json_path, "w") as f:
-                    json.dump(steps, f, indent=4)
-                return
+            last_k_actions_set = set(last_k_actions)
+            if len(last_k_actions_set) == 1:
+                repeated_action_key = last_k_actions_set.pop()
+                if "Swipe" not in repeated_action_key and "Back" not in repeated_action_key:
+                    print("Repetitive actions reaches the limit. Stopping...")
+                    task_end_time = time.time()
+                    steps.append({
+                        "step": iter,
+                        "operation": "finish",
+                        "finish_flag": "max_repetitive_actions",
+                        "max_repetitive_actions": max_repetitive_actions,
+                        "task_duration": task_end_time - task_start_time,
+                    })
+                    with open(log_json_path, "w") as f:
+                        json.dump(steps, f, indent=4)
+                    return
 
         iter += 1
         if iter == 1:

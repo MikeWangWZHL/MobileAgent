@@ -63,7 +63,7 @@ INIT_TIPS = """1. By default, no APPs are opened in the background.
 """
 # 2. If you want to type new text in a search box that already contains text you previously entered, make sure to clear it first by tapping the 'X' button.
 
-EVOLVE_FREQ = 5 # how often the agent evolves its knowledge; in iterations
+EVOLVE_FREQ = 100 # how often the agent evolves its knowledge; in iterations; large value means only evolve at the end of each task
 
 TEMP_DIR = "temp"
 SCREENSHOT_DIR = "screenshot"
@@ -387,6 +387,7 @@ def finish(
             json.dump(info_pool.shortcuts, f, indent=4)
     # exit(0)
 
+import copy
 
 def run_single_task(
     instruction,
@@ -405,13 +406,8 @@ def run_single_task(
     max_consecutive_failures=3,
     max_repetitive_actions=3,
     overwrite_log_dir=False,
-    err_to_manager_thresh = 2 # 2 consecutive errors up-report to the manager
+    err_to_manager_thresh = 3 # 3 consecutive errors up-report to the manager
 ):
-
-    ### reset the phone status ###
-    if reset_phone_state:
-        print("INFO: Reseting the phone states to Home and clear Notes and background apps ...\n")
-        reset_everything(ADB_PATH)
 
     ### set up log dir ###
     if task_id is None:
@@ -422,6 +418,12 @@ def run_single_task(
         return
     os.makedirs(f"{log_dir}/screenshots", exist_ok=True)
     log_json_path = f"{log_dir}/steps.json"
+
+
+    ### reset the phone status ###
+    if reset_phone_state:
+        print("INFO: Reseting the phone states to Home and clear Notes and background apps ...\n")
+        reset_everything(ADB_PATH)
     
     # local experience save paths
     local_shortcuts_save_path = f"{log_dir}/shortcuts.json" # single-task setting
@@ -438,7 +440,7 @@ def run_single_task(
     elif persistent_shortcuts_path:
         initial_shortcuts = json.load(open(persistent_shortcuts_path, "r"))
     else:
-        initial_shortcuts = INIT_SHORTCUTS
+        initial_shortcuts = copy.deepcopy(INIT_SHORTCUTS)
     print("INFO: Initial shortcuts:", initial_shortcuts)
         
     if knowledge_path:
@@ -446,7 +448,7 @@ def run_single_task(
     elif persistent_knowledge_path:
         additional_knowledge = open(persistent_knowledge_path, "r").read()
     else:
-        additional_knowledge = INIT_TIPS # user provided initial knowledge
+        additional_knowledge = copy.deepcopy(INIT_TIPS) # user provided initial knowledge
     print("INFO: Initial knowledge:", additional_knowledge)
 
     steps = []
@@ -471,9 +473,9 @@ def run_single_task(
             parsed_knowledge_retrieval = knowledge_retriever.parse_response(output_knowledge_retrieval)
             additional_knowledge, selected_shortcut_names = parsed_knowledge_retrieval['selected_tips'], parsed_knowledge_retrieval['selected_shortcut_names']
             if additional_knowledge.strip() == "None":
-                additional_knowledge = INIT_TIPS
+                additional_knowledge = copy.deepcopy(INIT_TIPS)
             if selected_shortcut_names is None or selected_shortcut_names == []:
-                initial_shortcuts = INIT_SHORTCUTS
+                initial_shortcuts = copy.deepcopy(INIT_SHORTCUTS)
             else:
                 selected_shortcuts = {}
                 for key in selected_shortcut_names:
@@ -603,29 +605,37 @@ def run_single_task(
                     else:
                         hash_key = json.dumps(act_obj)
                     if "arguments" in act_obj:
-                        for arg, value in act_obj['arguments'].items():
-                            hash_key += f"-{arg}-{value}"
+                        if act_obj['arguments'] is not None:
+                            for arg, value in act_obj['arguments'].items():
+                                hash_key += f"-{arg}-{value}"
+                        else:
+                            hash_key += "-None"
                     print("hashable action key:", hash_key)
                     last_k_actions_set.add(hash_key)
             except:
+                last_k_actions_set = set() # not stopping if there is any error
                 pass
             if len(last_k_actions_set) == 1:
-                print("Repetitive actions reaches the limit. Stopping...")
-                task_end_time = time.time()
-                steps.append({
-                    "step": iter,
-                    "operation": "finish",
-                    "finish_flag": "max_repetitive_actions",
-                    "max_repetitive_actions": max_repetitive_actions,
-                    "final_info_pool": asdict(info_pool),
-                    "task_duration": task_end_time - task_start_time,
-                })
-                with open(log_json_path, "w") as f:
-                    json.dump(steps, f, indent=4)
-                return
+                repeated_action_key = last_k_actions_set.pop()
+                if "Swipe" not in repeated_action_key and "Back" not in repeated_action_key:
+                    print("Repetitive actions reaches the limit. Stopping...")
+                    task_end_time = time.time()
+                    steps.append({
+                        "step": iter,
+                        "operation": "finish",
+                        "finish_flag": "max_repetitive_actions",
+                        "max_repetitive_actions": max_repetitive_actions,
+                        "final_info_pool": asdict(info_pool),
+                        "task_duration": task_end_time - task_start_time,
+                    })
+                    with open(log_json_path, "w") as f:
+                        json.dump(steps, f, indent=4)
+                    return
 
         ## do perception if (1) the first perception; (2) previous action has error ##
-        if iter == 1 or info_pool.action_outcomes[-1] in ["B", "C"]:
+        # if iter == 1 or info_pool.action_outcomes[-1] in ["B", "C"]:
+
+        if iter == 1: # first perception
             screenshot_file = "./screenshot/screenshot.jpg"
             print("\n### Perceptor ... ###\n")
             perception_start_time = time.time()
@@ -647,11 +657,14 @@ def run_single_task(
 
             ## log ##
             save_screen_shot_path = f"{log_dir}/screenshots/{iter}.jpg"
-            if not os.path.exists(save_screen_shot_path):
-                Image.open(screenshot_file).save(save_screen_shot_path)
-            else:
-                save_screen_shot_path = f"{log_dir}/screenshots/{iter}_reverted.jpg"
-                Image.open(screenshot_file).save(save_screen_shot_path)
+            Image.open(screenshot_file).save(save_screen_shot_path)
+            
+            # save_screen_shot_path = f"{log_dir}/screenshots/{iter}.jpg"
+            # if not os.path.exists(save_screen_shot_path):
+            #     Image.open(screenshot_file).save(save_screen_shot_path)
+            # else:
+            #     save_screen_shot_path = f"{log_dir}/screenshots/{iter}_reverted.jpg"
+            #     Image.open(screenshot_file).save(save_screen_shot_path)
 
             perception_end_time = time.time()
             steps.append({
@@ -667,7 +680,7 @@ def run_single_task(
         ## otherwise reuse the previous perception info of the updated state ##
         
         ### get perception infos ###
-        info_pool.perception_infos_pre = perception_infos
+        info_pool.perception_infos_pre = copy.deepcopy(perception_infos)
         info_pool.keyboard_pre = keyboard
 
         ### Manager: High-level Planning ###
@@ -675,7 +688,7 @@ def run_single_task(
         ## check if stuck with errors for a long time ##
         # if so need to think about the plan again
         info_pool.error_flag_plan = False
-        if len(info_pool.action_outcomes) > err_to_manager_thresh:
+        if len(info_pool.action_outcomes) >= err_to_manager_thresh:
             # check if the last err_to_manager_thresh actions are all errors
             latest_outcomes = info_pool.action_outcomes[-err_to_manager_thresh:]
             count = 0
@@ -747,7 +760,7 @@ def run_single_task(
                 with open(local_knowledge_save_path, "w") as f:
                     f.write(info_pool.additional_knowledge)
                 with open(local_shortcuts_save_path, "w") as f:
-                    json.dump(info_pool.shortcuts, f)
+                    json.dump(info_pool.shortcuts, f, indent=4)
                 pdb_hook()
         
         ### Stopping by planner ###
@@ -894,17 +907,21 @@ def run_single_task(
             action_outcome = "A"
         elif "B" in outcome: # Failed. The last action results in a wrong page. I need to return to the previous state.
             action_outcome = "B"
+
+            # NOTE: removing the automatic backing; always stopping at the failed state and then there will be a new perception step
+            # no automatic backing
             # check how many backs to take
             action_name = action_object['name']
             if action_name in ATOMIC_ACTION_SIGNITURES:
-                back(ADB_PATH) # back one step for atomic actions
+                # back(ADB_PATH) # back one step for atomic actions
+                pass
             elif action_name in info_pool.shortcuts:
                 # shortcut_object = info_pool.shortcuts[action_name]
                 # num_of_atomic_actions = len(shortcut_object['atomic_action_sequence'])
                 if shortcut_error_message is not None:
                     error_description += f"; Error occured while executing the shortcut: {shortcut_error_message}"
-                for _ in range(num_atomic_actions_executed):
-                    back(ADB_PATH)   
+                # for _ in range(num_atomic_actions_executed):
+                #     back(ADB_PATH)   
             else:
                 raise ValueError("Invalid action name:", action_name)
 
@@ -979,122 +996,3 @@ def run_single_task(
         from time import sleep
         print("sleeping for 5 before next iteration")
         sleep(5)
-        #
-
-
-# ###################################################################################################
-
-# ### For debugging ###
-# ENABLE_PDB = False
-# def pdb_hook():
-#     if ENABLE_PDB:
-#         import pdb; pdb.set_trace()
-#     else:
-#         pass
-
-
-# def main():
-#     import argparse
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--seed", type=int, default=1234)
-#     parser.add_argument("--log_root", type=str, default="log/agent_E")
-#     parser.add_argument("--run_name", type=str, default="test")
-#     parser.add_argument("--instruction", type=str, default=None)
-#     parser.add_argument("--tasks_json", type=str, default=None)
-#     parser.add_argument("--specified_knowledge_path", type=str, default=None)
-#     parser.add_argument("--specified_shortcuts_path", type=str, default=None)
-#     parser.add_argument("--setting", type=str, default="individual") # individual or curriculum
-#     parser.add_argument("--future_tasks_visible", action="store_true", default=False)
-#     parser.add_argument("--reset_phone_state", action="store_true", default=True)
-#     parser.add_argument("--max_itr", type=int, default=30)
-
-#     args = parser.parse_args()
-#     torch.manual_seed(args.seed)
-
-#     if args.instruction is None and args.tasks_json is None:
-#         raise ValueError("You must provide either instruction or tasks_json.")
-#     if args.instruction is not None and args.tasks_json is not None:
-#         raise ValueError("You cannot provide both instruction and tasks_json.")
-    
-#     if args.instruction is not None:
-#         # single task inference
-#         run_single_task(
-#             args.instruction,
-#             run_name=args.run_name,
-#             log_root=args.log_root,
-#             knowledge_path=args.specified_knowledge_path,
-#             shortcuts_path=args.specified_shortcuts_path,
-#             persistent_knowledge_path=None,
-#             persistent_shortcuts_path=None,
-#             reset_phone_state=True,
-#             perceptor=None,
-#             perception_args=DEFAULT_PERCEPTION_ARGS,
-#             max_itr=args.max_itr
-#         )
-#     else:
-#         # multi task inference
-#         tasks = json.load(open(args.tasks_json, "r"))
-#         perceptor = Perceptor(ADB_PATH, perception_args=DEFAULT_PERCEPTION_ARGS)
-#         if args.setting == "individual":
-#             ## invidual setting ##
-#             persistent_knowledge_path = None
-#             persistent_shortcuts_path = None
-#         elif args.setting == "curriculum":
-#             ## curriculum setting ##
-#             run_log_dir = f"{args.log_root}/{args.run_name}"
-#             os.makedirs(run_log_dir, exist_ok=True)
-#             persistent_knowledge_path = os.path.join(run_log_dir, "persistent_knowledge.txt")
-#             persistent_shortcuts_path = os.path.join(run_log_dir, "persistent_shortcuts.json")
-
-#             if args.specified_knowledge_path is not None:
-#                 shutil.copy(args.specified_knowledge_path, persistent_knowledge_path)
-#             else:
-#                 with open(persistent_knowledge_path, "w") as f:
-#                     f.write(INIT_TIPS)
-            
-#             if args.specified_shortcuts_path is not None:
-#                 shutil.copy(args.specified_shortcuts_path, persistent_shortcuts_path)
-#             else:
-#                 with open(persistent_shortcuts_path, "w") as f:
-#                     json.dump(INIT_SHORTCUTS, f, indent=4)
-#         else:
-#             raise ValueError("Invalid setting:", args.setting)
-        
-#         print(f"INFO: Running tasks from {args.tasks_json} using {args.setting} setting ...")
-#         for i, task in enumerate(tasks):
-#             ## if future tasks are visible, specify them in the args ##
-#             if args.future_tasks_visible and i < len(tasks) - 1 and args.setting == "curriculum":
-#                 future_tasks = [t['instruction'] for t in tasks[i+1:]]
-#             else:
-#                 future_tasks = []
-
-#             print("\n\n### Running on task:", task["instruction"])
-#             print("\n\n")
-#             instruction = task["instruction"]
-#             if "task_id" in task:
-#                 task_id = task["task_id"]
-#             else:
-#                 task_id = args.tasks_json.split("/")[-1].split(".")[0] + f"_{args.setting}" + f"_{i}"
-#             run_single_task(
-#                 instruction,
-#                 future_tasks=future_tasks,
-#                 log_root=args.log_root,
-#                 run_name=args.run_name,
-#                 task_id=task_id,
-#                 knowledge_path=args.specified_knowledge_path,
-#                 shortcuts_path=args.specified_shortcuts_path,
-#                 persistent_knowledge_path=persistent_knowledge_path,
-#                 persistent_shortcuts_path=persistent_shortcuts_path,
-#                 reset_phone_state=True,
-#                 perceptor=perceptor,
-#                 perception_args=DEFAULT_PERCEPTION_ARGS,
-#                 max_itr=args.max_itr
-#             )
-#             import time
-#             print("DONE:", task["instruction"])
-#             print("Sleeping for 5 seconds before next task ...")
-#             time.sleep(5)
-
-# if __name__ == "__main__":
-#     main()
-

@@ -180,7 +180,32 @@ def check_pixel_color(
     else:
         return target_color_2_name
 
+def clear_chrome_tabs(adb_path):
+    home(adb_path)
+    sleep(1.5)
 
+    # open chrome
+    command = adb_path + f" shell am start -n com.android.chrome/com.google.android.apps.chrome.Main"
+    subprocess.run(command, capture_output=True, text=True, shell=True)
+    sleep(8)
+
+    # tap tabs
+    tap(adb_path, 878, 162)
+    sleep(2)
+
+    # tap three dots
+    tap(adb_path, 1013, 162)
+    sleep(2)
+
+    # tap close all tabs
+    tap(adb_path, 630, 432)
+    sleep(2)
+
+    # confirm
+    tap(adb_path, 727, 1330)
+    sleep(2)
+
+    home(adb_path)
 
 def clear_notes(adb_path):
     # # notes package name: com.samsung.android.app.notes
@@ -222,6 +247,7 @@ def clear_notes(adb_path):
     tap(adb_path, 723, 2056)
     sleep(2)
 
+    home(adb_path)
     # command = adb_path + f" shell pm clear com.samsung.android.app.notes"
     # subprocess.run(command, capture_output=True, text=True, shell=True)
 
@@ -274,5 +300,6 @@ def clear_processes(adb_path, device=None):
 def reset_everything(adb_path):
     clear_processes(adb_path=adb_path)
     clear_background_and_back_to_home(adb_path=adb_path)
+    clear_chrome_tabs(adb_path=adb_path)
     clear_notes(adb_path=adb_path)
     clear_background_and_back_to_home(adb_path=adb_path)

@@ -230,10 +230,10 @@ class Manager(BaseAgent):
             else:
                 prompt += "No important notes recorded.\n\n"
             if info_pool.error_flag_plan:
-                prompt += "### Stuck with Errors! ###\n"
-                prompt += "You have encountered some errors that has not been resolved for three consecutive attempts. Here are some logs:\n"
+                prompt += "### Potentially Stuck! ###\n"
+                prompt += "You have encountered several failed or partially successful attempts. Here are some logs:\n"
                 for i, (act, summ, err_des) in enumerate(zip(info_pool.action_history, info_pool.summary_history, info_pool.error_descriptions)):
-                    prompt += f"- Attempt {i+1}: Action: {act} | Description: {summ} | Outcome: Failed | Error Description: {err_des}\n"
+                    prompt += f"- Attempt {i+1}: Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
 
             prompt += "---\n"
             prompt += "The sections above provide an overview of the plan you are following, the current subgoal you are working on, the overall progress made, and any important notes you have recorded. The screenshot displays the current state of the phone.\n"
@@ -284,7 +284,7 @@ ATOMIC_ACTION_SIGNITURES = {
     },
     "Enter": {
         "arguments": [],
-        "description": lambda info: "Press the Enter key."
+        "description": lambda info: "Press the Enter key after typing (useful for searching)."
     },
     "Switch_App": {
         "arguments": [],
@@ -312,8 +312,8 @@ INIT_SHORTCUTS = {
     "Tap_Type_and_Enter": {
         "name": "Tap_Type_and_Enter",
         "arguments": ["x", "y", "text"],
-        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation (useful for searching or sending messages).",
-        "precondition": "There is a text input box on the screen.",
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
         "atomic_action_sequence":[
             {"name": "Tap", "arguments_map": {"x":"x", "y":"y"}},
             {"name": "Type", "arguments_map": {"text":"text"}},
@@ -360,14 +360,14 @@ class Executor(BaseAgent):
                 if outcome == "A":
                     prompt += f"Action: {act} | Description: {summ} | Outcome: Successful\n"
                 else:
-                    prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Error Description: {err_des}\n"
+                    prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
             prompt += "\n"
             
-            last_action_outcome = info_pool.action_outcomes[-1]
-            if last_action_outcome == "B":
-                prompt += "NOTE: Since the last action failed and resulted in an incorrect page, I have reverted the phone state to its previous state for you.\n\n"
-            elif last_action_outcome == "C":
-                prompt += "NOTE: Since the last action failed and did not have any effect, the state of the phone remains unchanged.\n\n"
+            # last_action_outcome = info_pool.action_outcomes[-1]
+            # if last_action_outcome == "B":
+            #     prompt += "NOTE: Since the last action failed and resulted in an incorrect page, I have reverted the phone state to its previous state for you.\n\n"
+            # elif last_action_outcome == "C":
+            #     prompt += "NOTE: Since the last action failed and did not have any effect, the state of the phone remains unchanged.\n\n"
         else:
             prompt += "No actions have been taken yet.\n\n"
 
@@ -638,12 +638,12 @@ class ActionReflector(BaseAgent):
         prompt += f"Expectation: {info_pool.last_summary}\n\n"
 
         prompt += "---\n"
-        prompt += "Carefully examine the information provided above to determine whether the last action produced the expected behavior. If the action was successful, update the progress status accordingly. If the action failed, identify the failure mode and provide reasoning on the potential reason causing this failure.\n\n"
+        prompt += "Carefully examine the information provided above to determine whether the last action produced the expected behavior. If the action was successful, update the progress status accordingly. If the action failed, identify the failure mode and provide reasoning on the potential reason causing this failure. Note that for the “Swipe” action, it may take multiple attempts to display the expected content. Thus, for a \"Swipe\" action, if the screen shows new content, it usually meets the expectation.\n\n"
 
         prompt += "Provide your output in the following format containing three parts:\n\n"
         prompt += "### Outcome ###\n"
         prompt += "Choose from the following options. Give your answer as \"A\", \"B\" or \"C\":\n"
-        prompt += "A: Successful. The result of the last action meets the expectation.\n"
+        prompt += "A: Successful or Partially Successful. The result of the last action meets the expectation.\n"
         prompt += "B: Failed. The last action results in a wrong page. I need to return to the previous state.\n"
         prompt += "C: Failed. The last action produces no changes.\n\n"
 
@@ -651,7 +651,7 @@ class ActionReflector(BaseAgent):
         prompt += "If the action failed, provide a detailed description of the error and the potential reason causing this failure. If the action succeeded, put \"None\" here.\n\n"
 
         prompt += "### Progress Status ###\n"
-        prompt += "If the action was successful, update the progress status. If the action failed, copy the previous progress status.\n"
+        prompt += "If the action was successful or partially successful, update the progress status. If the action failed, copy the previous progress status.\n"
 
         return prompt
 
@@ -784,7 +784,7 @@ class KnowledgeReflector(BaseAgent):
                 if outcome == "A":
                     prompt += f"Action: {act} | Description: {summ} | Outcome: Successful\n"
                 else:
-                    prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Error Description: {err_des}\n"
+                    prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
             prompt += "\n"
         else:
             prompt += "No actions have been taken yet.\n\n"
@@ -807,6 +807,7 @@ class KnowledgeReflector(BaseAgent):
         prompt += "If you decide to create a new shortcut (not already in the existing shortcuts), provide your shortcut object in a valid JSON format which is detailed below. If not, put \"None\" here.\n"
         prompt += "A shortcut object contains the following fields: name, arguments, description, precondition, and atomic_action_sequence. The keys in the arguements need to be unique. The atomic_action_sequence is a list of dictionaries, each containing the name of an atomic action and a mapping of its atomic argument names to the shortcut's argument name. If an atomic action in the atomic_action_sequence does not take any arugments, set the `arguments_map` to an empty dict. \n"
         prompt += "IMPORTANT: The shortcut must ONLY include the Atomic Actions listed above. Create a new shortcut only if you are confident it will be useful in the future. Ensure that duplicated shortcuts with overly similar atomic action sequences are not included.\n"
+        prompt += "PRO TIP: Avoid creating shortcuts with too many arguments, such as involving multiple taps at different positions. All coordinate arguments required for the shortcut should be visible on the current screen. Imagine that when you start executing the shortcut, you are essentially blind.\n"
         prompt += f"Follow the example below to format the shortcut. Avoid adding comments that could cause errors with json.loads().\n {SHORTCUT_EXMPALE}\n\n"
 
         prompt += "### Updated Tips ###\n"

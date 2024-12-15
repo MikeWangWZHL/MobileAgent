@@ -99,6 +99,7 @@ def main():
             ## invidual setting ##
             persistent_knowledge_path = None
             persistent_shortcuts_path = None
+
         elif args.setting == "curriculum":
             ## curriculum setting ##
             run_log_dir = f"{args.log_root}/{args.run_name}"
