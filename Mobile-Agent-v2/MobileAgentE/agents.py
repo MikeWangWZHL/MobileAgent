@@ -164,10 +164,10 @@ class InfoPool:
     finish_thought: str = ""
     current_subgoal: str = ""
     prev_subgoal: str = ""
+    err_to_manager_thresh: int = 2
 
     # future tasks
     future_tasks: list = field(default_factory=list)
-
 
 
 class BaseAgent(ABC):
@@ -231,9 +231,13 @@ class Manager(BaseAgent):
                 prompt += "No important notes recorded.\n\n"
             if info_pool.error_flag_plan:
                 prompt += "### Potentially Stuck! ###\n"
-                prompt += "You have encountered several failed or partially successful attempts. Here are some logs:\n"
-                for i, (act, summ, err_des) in enumerate(zip(info_pool.action_history, info_pool.summary_history, info_pool.error_descriptions)):
-                    prompt += f"- Attempt {i+1}: Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
+                prompt += "You have encountered several failed attempts. Here are some logs:\n"
+                k = info_pool.err_to_manager_thresh
+                recent_actions = info_pool.action_history[-k:]
+                recent_summaries = info_pool.summary_history[-k:]
+                recent_err_des = info_pool.error_descriptions[-k:]
+                for i, (act, summ, err_des) in enumerate(zip(recent_actions, recent_summaries, recent_err_des)):
+                    prompt += f"- Attempt: Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
 
             prompt += "---\n"
             prompt += "The sections above provide an overview of the plan you are following, the current subgoal you are working on, the overall progress made, and any important notes you have recorded. The screenshot displays the current state of the phone.\n"
@@ -322,6 +326,7 @@ INIT_SHORTCUTS = {
     }
 }
 
+
 class Executor(BaseAgent):
     def __init__(self, adb_path):
         self.adb = adb_path
@@ -348,36 +353,13 @@ class Executor(BaseAgent):
         prompt += "### Current Subgoal ###\n"
         prompt += f"{info_pool.current_subgoal}\n\n"
 
-        prompt += "### Latest Action History ###\n"
-        if info_pool.action_history != []:
-            prompt += "The most recent actions you took and whether they were successful:\n"
-            num_actions = min(5, len(info_pool.action_history))
-            latest_actions = info_pool.action_history[-num_actions:]
-            latest_summary = info_pool.summary_history[-num_actions:]
-            latest_outcomes = info_pool.action_outcomes[-num_actions:]
-            error_descriptions = info_pool.error_descriptions[-num_actions:]
-            for act, summ, outcome, err_des in zip(latest_actions, latest_summary, latest_outcomes, error_descriptions):
-                if outcome == "A":
-                    prompt += f"Action: {act} | Description: {summ} | Outcome: Successful\n"
-                else:
-                    prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
-            prompt += "\n"
-            
-            # last_action_outcome = info_pool.action_outcomes[-1]
-            # if last_action_outcome == "B":
-            #     prompt += "NOTE: Since the last action failed and resulted in an incorrect page, I have reverted the phone state to its previous state for you.\n\n"
-            # elif last_action_outcome == "C":
-            #     prompt += "NOTE: Since the last action failed and did not have any effect, the state of the phone remains unchanged.\n\n"
-        else:
-            prompt += "No actions have been taken yet.\n\n"
-
         prompt += "### Screen Information ###\n"
         prompt += (
             f"The attached image is a screenshot showing the current state of the phone. "
             f"Its width and height are {info_pool.width} and {info_pool.height} pixels, respectively.\n"
         )
         prompt += (
-            "To help you better perceive the content in this screenshot, we have extracted positional information for the text elements and icons. "
+            "To help you better understand the content in this screenshot, we have extracted positional information for the text elements and icons, including interactive elements such as search bars. "
             "The format is: (coordinates; content). The coordinates are [x, y], where x represents the horizontal pixel position (from left to right) "
             "and y represents the vertical pixel position (from top to bottom)."
         )
@@ -388,7 +370,8 @@ class Executor(BaseAgent):
                 prompt += f"{clickable_info['coordinates']}; {clickable_info['text']}\n"
         prompt += "\n"
         prompt += (
-            "Note that this information might not be entirely accurate. "
+            "Note that a search bar is often a long, rounded rectangle. If no search bar is presented and you want to perform a search, you may need to tap a search button, which is commonly represented by a magnifying glass.\n"
+            "Also, the information above might not be entirely accurate. "
             "You should combine it with the screenshot to gain a better understanding."
         )
         prompt += "\n\n"
@@ -436,14 +419,46 @@ class Executor(BaseAgent):
         else:
             prompt += "No shortcuts are available.\n"
         prompt += "\n"
+
+        prompt += "### Latest Action History ###\n"
+        if info_pool.action_history != []:
+            prompt += "Recent actions you took previously and whether they were successful:\n"
+            num_actions = min(5, len(info_pool.action_history))
+            latest_actions = info_pool.action_history[-num_actions:]
+            latest_summary = info_pool.summary_history[-num_actions:]
+            latest_outcomes = info_pool.action_outcomes[-num_actions:]
+            error_descriptions = info_pool.error_descriptions[-num_actions:]
+            action_log_strs = []
+            for act, summ, outcome, err_des in zip(latest_actions, latest_summary, latest_outcomes, error_descriptions):
+                if outcome == "A":
+                    action_log_str = f"Action: {act} | Description: {summ} | Outcome: Successful\n"
+                else:
+                    action_log_str = f"Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
+                prompt += action_log_str
+                action_log_strs.append(action_log_str)
+            if latest_outcomes[-1] == "C" and "Tap" in action_log_strs[-1] and "Tap" in action_log_strs[-2]:
+                prompt += "\nHINT: If multiple Tap actions failed to make changes to the screen, consider using a \"Swipe\" action to view more content or use another way to achieve the current subgoal."
+            
+            prompt += "\n"
+            
+            # last_action_outcome = info_pool.action_outcomes[-1]
+            # if last_action_outcome == "B":
+            #     prompt += "NOTE: Since the last action failed and resulted in an incorrect page, I have reverted the phone state to its previous state for you.\n\n"
+            # elif last_action_outcome == "C":
+            #     prompt += "NOTE: Since the last action failed and did not have any effect, the state of the phone remains unchanged.\n\n"
+        else:
+            prompt += "No actions have been taken yet.\n\n"
+
         prompt += "---\n"
         prompt += "Provide your output in the following format, which contains three parts:\n"
         prompt += "### Thought ###\n"
         prompt += "Provide a detailed explanation of your rationale for the chosen action. IMPORTANT: If you decide to use a shortcut, first verify that its precondition is met in the current phone state. For example, if the shortcut requires the phone to be at the Home screen, check whether the current screenshot shows the Home screen. If not, perform the appropriate atomic actions instead.\n\n"
+
         prompt += "### Action ###\n"
-        prompt += "Choose only one action or shortcut from the options provided. Do NOT return invalid actions like null or stop. "
+        prompt += "Choose only one action or shortcut from the options provided. IMPORTANT: Do NOT return invalid actions like null or stop. Do NOT repeat previously failed actions.\n"
         prompt += "Use shortcuts whenever possible to expedite the process, but make sure that the precondition is met.\n"
         prompt += "You must provide your decision using a valid JSON format specifying the name and arguments of the action. For example, if you choose to tap at position (100, 200), you should write {\"name\":\"Tap\", \"arguments\":{\"x\":100, \"y\":100}}. If an action does not require arguments, such as Home, fill in null to the \"arguments\" field. Ensure that the argument keys match the action function's signature exactly.\n\n"
+        
         prompt += "### Description ###\n"
         prompt += "A brief description of the chosen action and the expected outcome."
         return prompt
@@ -780,11 +795,12 @@ class KnowledgeReflector(BaseAgent):
             latest_summary = info_pool.summary_history
             action_outcomes = info_pool.action_outcomes
             error_descriptions = info_pool.error_descriptions
-            for act, summ, outcome, err_des in zip(latest_actions, latest_summary, action_outcomes, error_descriptions):
+            progress_status_history = info_pool.progress_status_history
+            for act, summ, outcome, err_des, progress in zip(latest_actions, latest_summary, action_outcomes, error_descriptions, progress_status_history):
                 if outcome == "A":
-                    prompt += f"Action: {act} | Description: {summ} | Outcome: Successful\n"
+                    prompt += f"- Action: {act} | Description: {summ} | Outcome: Successful | Progress: {progress}\n"
                 else:
-                    prompt += f"Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
+                    prompt += f"- Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
             prompt += "\n"
         else:
             prompt += "No actions have been taken yet.\n\n"
@@ -799,7 +815,7 @@ class KnowledgeReflector(BaseAgent):
             prompt += "\n"
 
         prompt += "---\n"
-        prompt += "Carefully reflect on the interaction history of the current task. Consider the following:\n(1) Are there any sequences of actions that occurred repeatedly and can be consolidated into new \"shortcuts\" to improve efficiency for future tasks? These shortcuts are subroutines consisting of a series of atomic actions that can be executed under specific preconditions.\n(2) Are there any general tips that might be useful for handling future tasks, such as advice on preventing certain common errors?\n\n"
+        prompt += "Carefully reflect on the interaction history of the current task. Consider the following:\n(1) Are there any subgoals that are accomplished by a sequence of successful actions and can be consolidated into new \"shortcuts\" to improve efficiency for future tasks? These shortcuts are subroutines consisting of a series of atomic actions that can be executed under specific preconditions. For example, creating a new Note, or searching in a search bar.\n(2) Are there any general tips that might be useful for handling future tasks, such as advice on preventing certain common errors?\n\n"
 
         prompt += "Provide your output in the following format containing two parts:\n\n"
 
@@ -839,6 +855,157 @@ class KnowledgeReflector(BaseAgent):
         new_shortcut = response.split("### New Shortcut ###")[-1].split("### Updated Tips ###")[0].replace("\n", " ").replace("  ", " ").strip()
         updated_tips = response.split("### Updated Tips ###")[-1].replace("\n", " ").replace("  ", " ").strip()
         return {"new_shortcut": new_shortcut, "updated_tips": updated_tips}
+
+
+class KnowledgeReflectorShortCut(BaseAgent):
+    def init_chat(self) -> list:
+        operation_history = []
+        sysetm_prompt = "You are a helpful AI assistant specializing in mobile phone operations. Your goal is to reflect on past experiences and provide insights to improve future interactions."
+        operation_history.append(["system", [{"type": "text", "text": sysetm_prompt}]])
+        return operation_history
+
+    def get_prompt(self, info_pool: InfoPool) -> str:
+        prompt = "### Current Task ###\n"
+        prompt += f"{info_pool.instruction}\n\n"
+
+        prompt += "### Overall Plan ###\n"
+        prompt += f"{info_pool.plan}\n\n"
+
+        prompt += "### Progress Status ###\n"
+        prompt += f"{info_pool.progress_status}\n\n"
+
+        prompt += "### Atomic Actions ###\n"
+        prompt += "Here are the atomic actions in the format of `name(arguments): description` as follows:\n"
+        for action, value in ATOMIC_ACTION_SIGNITURES.items():
+            prompt += f"{action}({', '.join(value['arguments'])}): {value['description'](info_pool)}\n"
+        prompt += "\n"
+
+        prompt += "### Existing Shortcuts from Past Experience ###\n"
+        if info_pool.shortcuts != {}:
+            prompt += "Here are some existing shortcuts you have created:\n"
+            for shortcut, value in info_pool.shortcuts.items():
+                prompt += f"- {shortcut}({', '.join(value['arguments'])}): {value['description']} | Precondition: {value['precondition']}\n"
+        else:
+            prompt += "No shortcuts are provided.\n"
+        prompt += "\n"
+
+        prompt += "### Full Action History ###\n"
+        if info_pool.action_history != []:
+            latest_actions = info_pool.action_history
+            latest_summary = info_pool.summary_history
+            action_outcomes = info_pool.action_outcomes
+            error_descriptions = info_pool.error_descriptions
+            progress_status_history = info_pool.progress_status_history
+            for act, summ, outcome, err_des, progress in zip(latest_actions, latest_summary, action_outcomes, error_descriptions, progress_status_history):
+                if outcome == "A":
+                    prompt += f"- Action: {act} | Description: {summ} | Outcome: Successful | Progress: {progress}\n"
+                else:
+                    prompt += f"- Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
+            prompt += "\n"
+        else:
+            prompt += "No actions have been taken yet.\n\n"
+
+        if len(info_pool.future_tasks) > 0:
+            prompt += "---\n"
+            # if the setting provides future tasks explicitly
+            prompt += "### Future Tasks ###\n"
+            prompt += "Here are some tasks that you might be asked to do in the future:\n"
+            for task in info_pool.future_tasks:
+                prompt += f"- {task}\n"
+            prompt += "\n"
+
+        prompt += "---\n"
+        prompt += "Carefully reflect on the interaction history of the current task. Check if there are any subgoals that are accomplished by a sequence of successful actions and can be consolidated into new \"Shortcuts\" to improve efficiency for future tasks? These shortcuts are subroutines consisting of a series of atomic actions that can be executed under specific preconditions. For example, tap, type and enter text in a search bar or creating a new note in Notes."
+
+        prompt += "Provide your output in the following format:\n\n"
+
+        prompt += "### New Shortcut ###\n"
+        prompt += "If you decide to create a new shortcut (not already in the existing shortcuts), provide your shortcut object in a valid JSON format which is detailed below. If not, put \"None\" here.\n"
+        prompt += "A shortcut object contains the following fields: name, arguments, description, precondition, and atomic_action_sequence. The keys in the arguements need to be unique. The atomic_action_sequence is a list of dictionaries, each containing the name of an atomic action and a mapping of its atomic argument names to the shortcut's argument name. If an atomic action in the atomic_action_sequence does not take any arugments, set the `arguments_map` to an empty dict. \n"
+        prompt += "IMPORTANT: The shortcut must ONLY include the Atomic Actions listed above. Create a new shortcut only if you are confident it will be useful in the future. Ensure that duplicated shortcuts with overly similar functionality are not included.\n"
+        prompt += "PRO TIP: Avoid creating shortcuts with too many arguments, such as involving multiple taps at different positions. All coordinate arguments required for the shortcut should be visible on the current screen. Imagine that when you start executing the shortcut, you are essentially blind.\n"
+        prompt += f"Follow the example below to format the shortcut. Avoid adding comments that could cause errors with json.loads().\n {SHORTCUT_EXMPALE}\n\n"
+        return prompt
+
+    def add_new_shortcut(self, short_cut_str: str, info_pool: InfoPool) -> str:
+        if short_cut_str is None or short_cut_str == "None":
+            return
+        short_cut_object = extract_json_object(short_cut_str)
+        if short_cut_object is None:
+            print("Error! Invalid JSON for adding new shortcut: ", short_cut_str)
+            return
+        short_cut_name = short_cut_object["name"]
+        if short_cut_name in info_pool.shortcuts:
+            print("Error! The shortcut already exists: ", short_cut_name)
+            return
+        info_pool.shortcuts[short_cut_name] = short_cut_object
+        print("Updated short_cuts:", info_pool.shortcuts)
+
+    def parse_response(self, response: str) -> dict:
+        new_shortcut = response.split("### New Shortcut ###")[-1].replace("\n", " ").replace("  ", " ").strip()
+        return {"new_shortcut": new_shortcut}
+
+
+class KnowledgeReflectorTips(BaseAgent):
+    def init_chat(self) -> list:
+        operation_history = []
+        sysetm_prompt = "You are a helpful AI assistant specializing in mobile phone operations. Your goal is to reflect on past experiences and provide insights to improve future interactions."
+        operation_history.append(["system", [{"type": "text", "text": sysetm_prompt}]])
+        return operation_history
+
+    def get_prompt(self, info_pool: InfoPool) -> str:
+        prompt = "### Current Task ###\n"
+        prompt += f"{info_pool.instruction}\n\n"
+
+        prompt += "### Overall Plan ###\n"
+        prompt += f"{info_pool.plan}\n\n"
+
+        prompt += "### Progress Status ###\n"
+        prompt += f"{info_pool.progress_status}\n\n"
+    
+        prompt += "### Existing Tips from Past Experience ###\n"
+        if info_pool.additional_knowledge != "":
+            prompt += f"{info_pool.additional_knowledge}\n\n"
+        else:
+            prompt += "No tips recorded.\n\n"
+
+        prompt += "### Full Action History ###\n"
+        if info_pool.action_history != []:
+            latest_actions = info_pool.action_history
+            latest_summary = info_pool.summary_history
+            action_outcomes = info_pool.action_outcomes
+            error_descriptions = info_pool.error_descriptions
+            progress_status_history = info_pool.progress_status_history
+            for act, summ, outcome, err_des, progress in zip(latest_actions, latest_summary, action_outcomes, error_descriptions, progress_status_history):
+                if outcome == "A":
+                    prompt += f"- Action: {act} | Description: {summ} | Outcome: Successful | Progress: {progress}\n"
+                else:
+                    prompt += f"- Action: {act} | Description: {summ} | Outcome: Failed | Feedback: {err_des}\n"
+            prompt += "\n"
+        else:
+            prompt += "No actions have been taken yet.\n\n"
+            
+        if len(info_pool.future_tasks) > 0:
+            prompt += "---\n"
+            # if the setting provides future tasks explicitly
+            prompt += "### Future Tasks ###\n"
+            prompt += "Here are some tasks that you might be asked to do in the future:\n"
+            for task in info_pool.future_tasks:
+                prompt += f"- {task}\n"
+            prompt += "\n"
+
+        prompt += "---\n"
+        prompt += "Carefully reflect on the interaction history of the current task. Check if there are any general tips that might be useful for handling future tasks, such as advice on preventing certain common errors?\n\n"
+
+        prompt += "Provide your output in the following format:\n\n"
+
+        prompt += "### Updated Tips ###\n"
+        prompt += "If you have any important new tips to add (not already included in the existing tips), combine them with the current list. If there are no new tips, simply copy the existing tips here. Keep your tips concise and general.\n"
+        return prompt
+
+    def parse_response(self, response: str) -> dict:
+        updated_tips = response.split("### Updated Tips ###")[-1].replace("\n", " ").replace("  ", " ").strip()
+        return {"updated_tips": updated_tips}
 
 
 class KnowledgeRetriever(BaseAgent):

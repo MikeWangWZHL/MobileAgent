@@ -1,0 +1,101 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Save_Note_As_File": {
+        "name": "Save_Note_As_File",
+        "arguments": [
+            "folder_x",
+            "folder_y",
+            "done_x",
+            "done_y",
+            "save_x",
+            "save_y"
+        ],
+        "description": "Save a note as a file in a specified folder by selecting the folder, confirming the selection, and tapping the save button.",
+        "precondition": "The 'Save note as' menu is open, and the desired folder, 'Done' button, and 'Save' button are visible on the screen.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "folder_x",
+                    "y": "folder_y"
+                }
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "done_x",
+                    "y": "done_y"
+                }
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "save_x",
+                    "y": "save_y"
+                }
+            }
+        ]
+    },
+    "Switch_App_And_Search": {
+        "name": "Switch_App_And_Search",
+        "arguments": [
+            "app_name",
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Switch to a specified app, tap on a search bar at position (x, y), type the given text, and press Enter to perform a search.",
+        "precondition": "The app to switch to is already open in the app switcher, and the search bar is visible on the screen after switching.",
+        "atomic_action_sequence": [
+            {
+                "name": "Switch_App",
+                "arguments_map": {}
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    }
+}

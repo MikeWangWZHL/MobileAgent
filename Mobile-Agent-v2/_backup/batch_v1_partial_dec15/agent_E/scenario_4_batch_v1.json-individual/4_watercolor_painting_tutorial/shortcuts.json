@@ -1,0 +1,69 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Clear_And_Type_Search": {
+        "name": "Clear_And_Type_Search",
+        "arguments": [
+            "x_clear",
+            "y_clear",
+            "x_search",
+            "y_search",
+            "text"
+        ],
+        "description": "Clear the existing text in a search bar, tap the search bar, type the desired text, and press Enter to initiate the search.",
+        "precondition": "There is a search bar with existing text that needs to be cleared before entering a new search term.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x_clear",
+                    "y": "y_clear"
+                }
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x_search",
+                    "y": "y_search"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    }
+}

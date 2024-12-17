@@ -9,7 +9,10 @@ from MobileAgentE.api import inference_chat
 from MobileAgentE.text_localization import ocr
 from MobileAgentE.icon_localization import det
 from MobileAgentE.controller import get_screenshot, back, clear_background_and_back_to_home, clear_notes, clear_processes, reset_everything
-from MobileAgentE.agents import InfoPool, Manager, Executor, Notetaker, ActionReflector, KnowledgeReflector, KnowledgeRetriever, INIT_SHORTCUTS
+from MobileAgentE.agents import (
+    InfoPool, Manager, Executor, Notetaker, ActionReflector, KnowledgeReflector, KnowledgeRetriever, 
+    INIT_SHORTCUTS, KnowledgeReflectorShortCut, KnowledgeReflectorTips
+)
 from MobileAgentE.agents import add_response, add_response_two_image
 from MobileAgentE.agents import ATOMIC_ACTION_SIGNITURES
 
@@ -43,6 +46,7 @@ USAGE_TRACKING_JSONL = "usage/eval_batch_v1.jsonl"
 
 # Reasoning GPT model
 REASONING_MODEL = "gpt-4o-2024-11-20"
+KNOWLEDGE_REFLECTION_MODEL = "gpt-4o-2024-11-20"
 
 # Choose between "api" and "local". api: use the qwen api. local: use the local qwen checkpoint
 CAPTION_CALL_METHOD = "api"
@@ -69,6 +73,9 @@ TEMP_DIR = "temp"
 SCREENSHOT_DIR = "screenshot"
 
 ENABLE_KNOWLEDGE_RETRIEVER = False
+
+# KNOWLEDGE_REFLECTION_MODE = "single_reflector" # "dual_reflector"
+KNOWLEDGE_REFLECTION_MODE = "dual_reflector" #
 
 # # Reflection Setting: If you want to improve the operating speed, you can disable the reflection agent. This may reduce the success rate.
 # reflection_switch = True
@@ -406,7 +413,7 @@ def run_single_task(
     max_consecutive_failures=3,
     max_repetitive_actions=3,
     overwrite_log_dir=False,
-    err_to_manager_thresh = 3 # 3 consecutive errors up-report to the manager
+    err_to_manager_thresh = 2 # 3 consecutive errors up-report to the manager
 ):
 
     ### set up log dir ###
@@ -469,7 +476,7 @@ def run_single_task(
             knowledge_retrieval_prompt = knowledge_retriever.get_prompt(instruction, additional_knowledge, initial_shortcuts)
             chat_knowledge_retrieval = knowledge_retriever.init_chat()
             chat_knowledge_retrieval = add_response("user", knowledge_retrieval_prompt, chat_knowledge_retrieval, image=None)
-            output_knowledge_retrieval = inference_chat(chat_knowledge_retrieval, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
+            output_knowledge_retrieval = inference_chat(chat_knowledge_retrieval, KNOWLEDGE_REFLECTION_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
             parsed_knowledge_retrieval = knowledge_retriever.parse_response(output_knowledge_retrieval)
             additional_knowledge, selected_shortcut_names = parsed_knowledge_retrieval['selected_tips'], parsed_knowledge_retrieval['selected_shortcut_names']
             if additional_knowledge.strip() == "None":
@@ -504,6 +511,7 @@ def run_single_task(
         shortcuts = initial_shortcuts,
         additional_knowledge = additional_knowledge, # initial knowledge from user
         future_tasks = future_tasks,
+        err_to_manager_thresh=err_to_manager_thresh
     )
 
     ### temp dir ###
@@ -523,7 +531,11 @@ def run_single_task(
     executor = Executor(adb_path=ADB_PATH)
     notetaker = Notetaker()
     action_reflector = ActionReflector()
-    knowledge_reflector = KnowledgeReflector()
+    if KNOWLEDGE_REFLECTION_MODE == "single_reflector":
+        knowledge_reflector = KnowledgeReflector()
+    elif KNOWLEDGE_REFLECTION_MODE == "dual_reflector":
+        knowledge_reflector_shortcuts = KnowledgeReflectorShortCut()
+        knowledge_reflector_tips = KnowledgeReflectorTips()
 
     # save initial knowledge and shortcuts
     with open(local_knowledge_save_path, "w") as f:
@@ -549,8 +561,7 @@ def run_single_task(
         "persistent_shortcuts_path": persistent_shortcuts_path,
         "reset_phone_state": reset_phone_state,
         "perception_args": perception_args,
-        "init_info_pool": asdict(info_pool),
-        "err_to_manager_thresh": err_to_manager_thresh
+        "init_info_pool": asdict(info_pool)
     })
     with open(log_json_path, "w") as f:
         json.dump(steps, f, indent=4)
@@ -733,21 +744,47 @@ def run_single_task(
         if len(info_pool.action_outcomes) > 0:
             if (info_pool.action_outcomes[-1] == "A" and iter % EVOLVE_FREQ == 0) or ("Finished" in info_pool.current_subgoal.strip()):
                 print("\n### Knowledge Reflector ... ###\n")
-                print("Updating knowledge...")
                 knowledge_reflection_start_time = time.time()
-                prompt_knowledge = knowledge_reflector.get_prompt(info_pool)
-                chat_knowledge = knowledge_reflector.init_chat()
-                chat_knowledge = add_response("user", prompt_knowledge, chat_knowledge, image=None)
-                output_knowledge = inference_chat(chat_knowledge, REASONING_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
-                parsed_result_knowledge = knowledge_reflector.parse_response(output_knowledge)
-                new_shortcut_str, updated_tips = parsed_result_knowledge['new_shortcut'], parsed_result_knowledge['updated_tips']
-                if new_shortcut_str != "None" and new_shortcut_str is not None:
-                    knowledge_reflector.add_new_shortcut(new_shortcut_str, info_pool)
-                info_pool.additional_knowledge = updated_tips
+                if KNOWLEDGE_REFLECTION_MODE == "single_reflector":
+                    prompt_knowledge = knowledge_reflector.get_prompt(info_pool)
+                    chat_knowledge = knowledge_reflector.init_chat()
+                    chat_knowledge = add_response("user", prompt_knowledge, chat_knowledge, image=None)
+                    output_knowledge = inference_chat(chat_knowledge, KNOWLEDGE_REFLECTION_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
+                    parsed_result_knowledge = knowledge_reflector.parse_response(output_knowledge)
+                    new_shortcut_str, updated_tips = parsed_result_knowledge['new_shortcut'], parsed_result_knowledge['updated_tips']
+                    if new_shortcut_str != "None" and new_shortcut_str is not None:
+                        knowledge_reflector.add_new_shortcut(new_shortcut_str, info_pool)
+                    info_pool.additional_knowledge = updated_tips
+                    
+                elif KNOWLEDGE_REFLECTION_MODE == "dual_reflector":
+                    # shortcuts
+                    prompt_knowledge_shortcuts = knowledge_reflector_shortcuts.get_prompt(info_pool)
+                    chat_knowledge_shortcuts = knowledge_reflector_shortcuts.init_chat()
+                    chat_knowledge_shortcuts = add_response("user", prompt_knowledge_shortcuts, chat_knowledge_shortcuts, image=None)
+                    output_knowledge_shortcuts = inference_chat(chat_knowledge_shortcuts, KNOWLEDGE_REFLECTION_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
+                    parsed_result_knowledge_shortcuts = knowledge_reflector_shortcuts.parse_response(output_knowledge_shortcuts)
+                    new_shortcut_str = parsed_result_knowledge_shortcuts['new_shortcut']
+                    if new_shortcut_str != "None" and new_shortcut_str is not None:
+                        knowledge_reflector_shortcuts.add_new_shortcut(new_shortcut_str, info_pool)
+                    # tips
+                    prompt_knowledge_tips = knowledge_reflector_tips.get_prompt(info_pool)
+                    chat_knowledge_tips = knowledge_reflector_tips.init_chat()
+                    chat_knowledge_tips = add_response("user", prompt_knowledge_tips, chat_knowledge_tips, image=None)
+                    output_knowledge_tips = inference_chat(chat_knowledge_tips, KNOWLEDGE_REFLECTION_MODEL, OPENAI_API_URL, OPENAI_API_KEY, usage_tracking_jsonl=USAGE_TRACKING_JSONL)
+                    parsed_result_knowledge_tips = knowledge_reflector_tips.parse_response(output_knowledge_tips)
+                    updated_tips = parsed_result_knowledge_tips['updated_tips']
+                    info_pool.additional_knowledge = updated_tips
+
+                    prompt_knowledge = [prompt_knowledge_shortcuts, prompt_knowledge_tips]
+                    output_knowledge = [output_knowledge_shortcuts, output_knowledge_tips]
+                else:
+                    raise ValueError("Invalid Knowledge Reflection Mode")
+                
                 knowledge_reflection_end_time = time.time()
                 steps.append({
                     "step": iter,
                     "operation": "knowledge_reflection",
+                    "knowledge_reflection_mode": KNOWLEDGE_REFLECTION_MODE,
                     "prompt_knowledge": prompt_knowledge,
                     "raw_response": output_knowledge,
                     "new_shortcut": new_shortcut_str,
@@ -762,7 +799,7 @@ def run_single_task(
                 with open(local_shortcuts_save_path, "w") as f:
                     json.dump(info_pool.shortcuts, f, indent=4)
                 pdb_hook()
-        
+                    
         ### Stopping by planner ###
         if "Finished" in info_pool.current_subgoal.strip():
             info_pool.finish_thought = parsed_result_planning['thought']

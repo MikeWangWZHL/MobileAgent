@@ -1,0 +1,53 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Swipe_to_Reveal_Content": {
+        "name": "Swipe_to_Reveal_Content",
+        "arguments": [
+            "x1",
+            "y1",
+            "x2",
+            "y2"
+        ],
+        "description": "Swipe from position (x1, y1) to position (x2, y2) to reveal additional content below or above on the screen.",
+        "precondition": "The screen contains content that can be revealed by swiping.",
+        "atomic_action_sequence": [
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": "x1",
+                    "y1": "y1",
+                    "x2": "x2",
+                    "y2": "y2"
+                }
+            }
+        ]
+    }
+}

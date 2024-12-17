@@ -1,0 +1,56 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Reopen_App_and_Tap": {
+        "name": "Reopen_App_and_Tap",
+        "arguments": [
+            "app_name",
+            "x",
+            "y"
+        ],
+        "description": "Reopen an app from the home screen and tap a specific position within the app. Useful when an app unexpectedly exits or returns to the home screen.",
+        "precondition": "The app is installed on the device and visible on the home screen.",
+        "atomic_action_sequence": [
+            {
+                "name": "Open_App",
+                "arguments_map": {
+                    "app_name": "app_name"
+                }
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,67 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Sort_By_Price": {
+        "name": "Sort_By_Price",
+        "arguments": [
+            "filter_x",
+            "filter_y",
+            "sort_x",
+            "sort_y",
+            "apply_x",
+            "apply_y"
+        ],
+        "description": "Sort search results by price (low to high) in an app by tapping the filter button, selecting the sort option, and applying the changes.",
+        "precondition": "The current screen displays a filter or sort button, and the sorting options include 'Price: Low to High.'",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "filter_x",
+                    "y": "filter_y"
+                }
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "sort_x",
+                    "y": "sort_y"
+                }
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "apply_x",
+                    "y": "apply_y"
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,77 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Swipe_Until_Visible": {
+        "name": "Swipe_Until_Visible",
+        "arguments": [
+            "x1",
+            "y1",
+            "x2",
+            "y2",
+            "max_swipes"
+        ],
+        "description": "Swipe repeatedly from position (x1, y1) to position (x2, y2) until the desired content is visible or the maximum number of swipes (max_swipes) is reached.",
+        "precondition": "The content to be revealed is below the current screen, and swiping in the specified direction will bring it into view.",
+        "atomic_action_sequence": [
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": "x1",
+                    "y1": "y1",
+                    "x2": "x2",
+                    "y2": "y2"
+                }
+            }
+        ]
+    },
+    "Swipe_Until_Results_Loaded": {
+        "name": "Swipe_Until_Results_Loaded",
+        "arguments": [
+            "x1",
+            "y1",
+            "x2",
+            "y2",
+            "max_swipes"
+        ],
+        "description": "Swipe repeatedly from position (x1, y1) to position (x2, y2) until more results are loaded or the maximum number of swipes (max_swipes) is reached.",
+        "precondition": "The content to be revealed is below the current screen, and swiping in the specified direction will bring it into view.",
+        "atomic_action_sequence": [
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": "x1",
+                    "y1": "y1",
+                    "x2": "x2",
+                    "y2": "y2"
+                }
+            }
+        ]
+    }
+}

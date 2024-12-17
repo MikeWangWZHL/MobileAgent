@@ -59,12 +59,6 @@ scenario_2_groups_1 = {
             "apps": ["Chrome", "Notes"]
         },
         {
-            "task_id": "2_headphones_reviews",
-            "instruction": "Find three detailed user reviews of the Bose QC45 headphones from Amazon. Summarize the general sentiment in the Notes.",
-            "type": "multi_app",
-            "apps": ["Amazon", "Notes"]
-        },
-        {
             "task_id": "2_recipes_chinese",
             "instruction": "I have some onions, beef, and potatoes in my refrigerator. Can you find me a Chinese-style recipe that uses all three ingredients and can be prepared in under an hour? And find me a video tutorial on YouTube for that. Stop at the screen displaying the video.",
             "type": "multi_app",
@@ -75,6 +69,12 @@ scenario_2_groups_1 = {
             "instruction": "Can you check the MacDonald's APP to see if there are any Rewards or Deals including Spicy McCrispy. If so, help me add that to Mobile Order (Do not pay yet, I will do it myself). And then check the pickup location and get directions on Google Maps. Stop at the screen showing the route.",
             "type": "multi_app",
             "apps": ["McDonald's", "Maps"]
+        },
+        {
+            "task_id": "2_headphones_reviews",
+            "instruction": "Find three detailed user reviews of the Bose QC45 headphones from Amazon. Summarize the general sentiment in the Notes.",
+            "type": "multi_app",
+            "apps": ["Amazon", "Notes"]
         }
     ]
 }

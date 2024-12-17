@@ -1,0 +1,70 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Search_and_Scroll": {
+        "name": "Search_and_Scroll",
+        "arguments": [
+            "x",
+            "y",
+            "text",
+            "swipe_count"
+        ],
+        "description": "Tap a search bar at position (x, y), type the 'text', perform the search, and swipe up a specified number of times to reveal more content.",
+        "precondition": "There is a visible search bar on the screen, and swiping up reveals additional content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            },
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": 540,
+                    "y1": 1170,
+                    "x2": 540,
+                    "y2": 234
+                }
+            }
+        ]
+    }
+}

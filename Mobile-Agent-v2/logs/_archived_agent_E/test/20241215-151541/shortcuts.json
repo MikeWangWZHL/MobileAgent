@@ -1,0 +1,69 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Search_Location_and_Get_Directions": {
+        "name": "Search_Location_and_Get_Directions",
+        "arguments": [
+            "search_x",
+            "search_y",
+            "location_text",
+            "directions_x",
+            "directions_y"
+        ],
+        "description": "Search for a location by tapping the search bar, typing the location name, pressing Enter, and then tapping the 'Directions' button to proceed to the directions screen.",
+        "precondition": "The Maps app is open, and the search bar and 'Directions' button are visible on the screen.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "search_x",
+                    "y": "search_y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "location_text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            },
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "directions_x",
+                    "y": "directions_y"
+                }
+            }
+        ]
+    }
+}

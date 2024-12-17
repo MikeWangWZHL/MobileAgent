@@ -1,0 +1,53 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Tap_Back_to_Main_List": {
+        "name": "Tap_Back_to_Main_List",
+        "arguments": [
+            "x",
+            "y"
+        ],
+        "description": "Tap a back button at position (x, y) to return to the main movie list after viewing details of a specific movie.",
+        "precondition": "The current screen is a movie details page, and the back button is visible at position (x, y).",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Back",
+                "arguments_map": {}
+            }
+        ]
+    }
+}

@@ -1,0 +1,81 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Scroll_Reviews": {
+        "name": "Scroll_Reviews",
+        "arguments": [
+            "x1",
+            "y1",
+            "x2",
+            "y2",
+            "swipes"
+        ],
+        "description": "Swipe multiple times to scroll through reviews or content on the screen.",
+        "precondition": "The screen contains scrollable content, such as reviews or a list, and the swipe coordinates are valid for scrolling.",
+        "atomic_action_sequence": [
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": "x1",
+                    "y1": "y1",
+                    "x2": "x2",
+                    "y2": "y2"
+                }
+            },
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": "x1",
+                    "y1": "y1",
+                    "x2": "x2",
+                    "y2": "y2"
+                }
+            },
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": "x1",
+                    "y1": "y1",
+                    "x2": "x2",
+                    "y2": "y2"
+                }
+            },
+            {
+                "name": "Swipe",
+                "arguments_map": {
+                    "x1": "x1",
+                    "y1": "y1",
+                    "x2": "x2",
+                    "y2": "y2"
+                }
+            }
+        ]
+    }
+}

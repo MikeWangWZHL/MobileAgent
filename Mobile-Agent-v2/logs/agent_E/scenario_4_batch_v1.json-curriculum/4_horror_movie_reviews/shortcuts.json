@@ -1,0 +1,79 @@
+{
+    "Tap_Type_and_Enter": {
+        "name": "Tap_Type_and_Enter",
+        "arguments": [
+            "x",
+            "y",
+            "text"
+        ],
+        "description": "Tap an input box at position (x, y), Type the \"text\", and then perform the Enter operation. Very useful for searching and sending messages!",
+        "precondition": "There is a text input box on the screen with no previously entered content.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x",
+                    "y": "y"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            },
+            {
+                "name": "Enter",
+                "arguments_map": {}
+            }
+        ]
+    },
+    "Create_New_Note": {
+        "name": "Create_New_Note",
+        "arguments": [
+            "text"
+        ],
+        "description": "Create a new note in the Notes app and type the provided text into it.",
+        "precondition": "The Notes app is open, and the 'Add' button (orange icon with a pencil) is visible on the screen.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "929",
+                    "y": "2053"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            }
+        ]
+    },
+    "Clear_Search_And_Type": {
+        "name": "Clear_Search_And_Type",
+        "arguments": [
+            "x_clear",
+            "y_clear",
+            "text"
+        ],
+        "description": "Clear the current search term by tapping the 'X' icon and then type the new search term into the search bar.",
+        "precondition": "The search bar is active, and the 'X' icon to clear the current search term is visible on the screen.",
+        "atomic_action_sequence": [
+            {
+                "name": "Tap",
+                "arguments_map": {
+                    "x": "x_clear",
+                    "y": "y_clear"
+                }
+            },
+            {
+                "name": "Type",
+                "arguments_map": {
+                    "text": "text"
+                }
+            }
+        ]
+    }
+}
