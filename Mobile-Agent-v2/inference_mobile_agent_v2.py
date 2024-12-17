@@ -346,7 +346,7 @@ def run_single_task(
             ## log ##
             notetaking_end_time = time.time()
             steps.append({
-                "step": iter+1,
+                "step": iter,
                 "operation": "notetaking",
                 "prompt_note": prompt_memory,
                 "raw_response": output_memory,

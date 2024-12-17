@@ -413,7 +413,7 @@ def run_single_task(
     max_consecutive_failures=3,
     max_repetitive_actions=3,
     overwrite_log_dir=False,
-    err_to_manager_thresh = 2 # 3 consecutive errors up-report to the manager
+    err_to_manager_thresh = 2 # 2 consecutive errors up-report to the manager
 ):
 
     ### set up log dir ###
