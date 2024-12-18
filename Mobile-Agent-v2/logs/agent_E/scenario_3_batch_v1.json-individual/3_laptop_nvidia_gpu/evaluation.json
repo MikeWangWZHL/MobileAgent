@@ -1,0 +1,135 @@
+{
+    "rubrics": {
+        "0": "Opened Amazon Shopping",
+        "1": "Searched for laptops with Nvidia GPU",
+        "2": "Found at least one laptop option",
+        "3": "Viewed multiple laptop options",
+        "4": "The laptop found is under $1000",
+        "5": "The laptop found has an Nvidia GPU",
+        "6": "The laptop found has more than 8GB RAM",
+        "7": "Stopped at the product page showing a laptop under $1000 with Nvidia GPU and more than 8GB RAM"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": false,
+        "3": false,
+        "4": false,
+        "5": false,
+        "6": false,
+        "7": false
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        }
+    ],
+    "action_count": 9,
+    "correct_action_count": 4,
+    "reflection_count": 9,
+    "correct_reflection_count": 9,
+    "action_accuracy": 0.4444444444444444,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.25,
+    "error_recovery_score": 0.2,
+    "early_termination": true,
+    "early_termination_reason": "max_consecutive_failures"
+}

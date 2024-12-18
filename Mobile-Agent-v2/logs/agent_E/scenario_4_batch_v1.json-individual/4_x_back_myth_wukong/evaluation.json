@@ -1,0 +1,103 @@
+{
+    "rubrics": {
+        "0": "Opened X",
+        "1": "Searched 'Black Myth Wukong'",
+        "2": "Found top posts",
+        "3": "Reviewed multiple top posts for highlights",
+        "4": "Opened Notes",
+        "5": "Created a new note with summarized key highlights"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": false,
+        "4": true,
+        "5": true
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": true,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": true,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": true,
+            "5": true
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": true,
+            "5": true
+        }
+    ],
+    "action_count": 8,
+    "correct_action_count": 8,
+    "reflection_count": 8,
+    "correct_reflection_count": 8,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.8333333333333334,
+    "error_recovery_score": null,
+    "early_termination": null,
+    "early_termination_reason": null
+}

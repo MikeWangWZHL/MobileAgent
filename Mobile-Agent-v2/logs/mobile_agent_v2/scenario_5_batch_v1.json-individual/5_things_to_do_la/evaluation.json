@@ -1,0 +1,143 @@
+{
+    "rubrics": {
+        "0": "Opened Tripadvisor",
+        "1": "Searched for things to do in LA",
+        "2": "Found at least one interesting attraction",
+        "3": "Found multiple interesting attractions (>=3)",
+        "4": "Opened Notes",
+        "5": "Created a new note with the 3 attraction suggestions"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true
+        }
+    ],
+    "action_count": 13,
+    "correct_action_count": 11,
+    "reflection_count": 13,
+    "correct_reflection_count": 13,
+    "action_accuracy": 0.8461538461538461,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": true,
+    "satisfactory_score": 1.0,
+    "error_recovery_score": 0.5,
+    "early_termination": null,
+    "early_termination_reason": null
+}

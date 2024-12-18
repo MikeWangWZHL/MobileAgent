@@ -1,0 +1,71 @@
+{
+    "rubrics": {
+        "0": "Opened Lemon8",
+        "1": "Searched for watercolor painting tutorials",
+        "2": "Found at least one relavant content creator with highly liked posts",
+        "3": "Found multiple relavant content creator with highly liked posts",
+        "4": "Opened Notes",
+        "5": "Added a note with the account names of the content creators"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": false,
+        "4": false,
+        "5": false
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false
+        }
+    ],
+    "action_count": 4,
+    "correct_action_count": 4,
+    "reflection_count": 4,
+    "correct_reflection_count": 4,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.5,
+    "error_recovery_score": null,
+    "early_termination": null,
+    "early_termination_reason": null
+}

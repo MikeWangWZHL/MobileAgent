@@ -1,0 +1,123 @@
+{
+    "rubrics": {
+        "0": "Opened Booking",
+        "1": "Navigated to flight search",
+        "2": "Correctly entered departure city as Chicago",
+        "3": "Correctly entered arrival city as New York City",
+        "4": "Selected round-trip flight",
+        "5": "Selected the to and back date as some date in the next month",
+        "6": "Get results for the round-trip flight",
+        "7": "Viewed at least one flight option",
+        "8": "Viewed multiple flight options",
+        "9": "Stopped at the screen showing the cheapest round-trip flight viewed"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": false,
+        "9": true
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": false,
+            "9": true
+        }
+    ],
+    "action_count": 6,
+    "correct_action_count": 6,
+    "reflection_count": 6,
+    "correct_reflection_count": 6,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.9,
+    "error_recovery_score": null,
+    "early_termination": null,
+    "early_termination_reason": null
+}

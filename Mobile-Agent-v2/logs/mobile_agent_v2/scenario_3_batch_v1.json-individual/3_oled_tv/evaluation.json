@@ -1,0 +1,95 @@
+{
+    "rubrics": {
+        "0": "Opened Best Buy",
+        "1": "Searched for 55-inch 4K OLED TV",
+        "2": "Found at least one TV option",
+        "3": "Viewed multiple TV options",
+        "4": "The TV found is indeed 55-inch",
+        "5": "The TV found is indeed 4K",
+        "6": "The TV found is indeed OLED",
+        "7": "Stopped at the product page showing a 55-inch 4K OLED TV"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": false,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true
+        }
+    ],
+    "action_count": 5,
+    "correct_action_count": 5,
+    "reflection_count": 5,
+    "correct_reflection_count": 5,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.875,
+    "error_recovery_score": null,
+    "early_termination": null,
+    "early_termination_reason": null
+}

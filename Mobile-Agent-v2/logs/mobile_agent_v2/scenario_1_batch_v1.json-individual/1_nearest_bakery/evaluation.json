@@ -1,0 +1,63 @@
+{
+    "rubrics": {
+        "0": "Opened Maps",
+        "1": "Searched for bakeries near me",
+        "2": "Found a bakery with a rating higher than 4.0",
+        "3": "Found a bakery that is near to me",
+        "4": "Found the bakery that is nearest to me with a rating higher than 4.0",
+        "5": "Stopped at the screen showing the route to the nearest bakery with a rating higher than 4.0"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true
+        }
+    ],
+    "action_count": 3,
+    "correct_action_count": 3,
+    "reflection_count": 3,
+    "correct_reflection_count": 3,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": true,
+    "satisfactory_score": 1.0,
+    "error_recovery_score": null,
+    "early_termination": null,
+    "early_termination_reason": null
+}

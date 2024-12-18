@@ -1,0 +1,96 @@
+{
+    "rubrics": {
+        "0": "Opened Walmart",
+        "1": "Searched for Ninja air fryer 8 qt",
+        "2": "Found the price of the Ninja air fryer 8 qt on Walmart",
+        "3": "Opened Amazon Shopping",
+        "4": "Searched for Ninja air fryer 8 qt",
+        "5": "Found the price of Ninja air fryer 8 qt on Amazon",
+        "6": "Stopped at the screen showing the best deal on either Amazon or Walmart"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": false,
+        "6": false
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        }
+    ],
+    "action_count": 6,
+    "correct_action_count": 6,
+    "reflection_count": 6,
+    "correct_reflection_count": 6,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.7142857142857143,
+    "error_recovery_score": null,
+    "early_termination": null,
+    "early_termination_reason": null
+}

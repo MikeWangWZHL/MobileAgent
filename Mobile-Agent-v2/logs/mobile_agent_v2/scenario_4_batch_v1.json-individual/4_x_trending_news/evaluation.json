@@ -1,0 +1,87 @@
+{
+    "rubrics": {
+        "0": "Opened X",
+        "1": "Navigated to trending news section",
+        "2": "Identified top 3 trending news topics",
+        "3": "Read at least one detailed post",
+        "4": "Read multiple detailed posts",
+        "5": "Opened Notes",
+        "6": "Created a new note summarizing the trending news"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": false,
+        "2": false,
+        "3": true,
+        "4": true,
+        "5": false,
+        "6": false
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        }
+    ],
+    "action_count": 5,
+    "correct_action_count": 2,
+    "reflection_count": 5,
+    "correct_reflection_count": 5,
+    "action_accuracy": 0.4,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.42857142857142855,
+    "error_recovery_score": 0.0,
+    "early_termination": true,
+    "early_termination_reason": "max_consecutive_failures"
+}

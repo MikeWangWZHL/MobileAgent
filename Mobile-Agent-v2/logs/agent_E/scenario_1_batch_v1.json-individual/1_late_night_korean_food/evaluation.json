@@ -1,0 +1,55 @@
+{
+    "rubrics": {
+        "0": "Opened Maps",
+        "1": "Searched for Korean restaurants in Champaign, IL",
+        "2": "Checked at least one restaurant's rating",
+        "3": "Checked at least one restaurant's opening hours",
+        "4": "Checked multiple restaurants' ratings and opening hours",
+        "5": "Stopped at the screen showing a highly-rated korean restaurant in Champaign, IL that opens beyond 9pm"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": false,
+        "5": true
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": false,
+            "5": true
+        }
+    ],
+    "action_count": 2,
+    "correct_action_count": 2,
+    "reflection_count": 2,
+    "correct_reflection_count": 2,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.8333333333333334,
+    "error_recovery_score": null,
+    "early_termination": null,
+    "early_termination_reason": null
+}

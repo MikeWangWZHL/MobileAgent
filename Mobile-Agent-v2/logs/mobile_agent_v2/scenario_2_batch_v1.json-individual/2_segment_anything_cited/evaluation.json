@@ -1,0 +1,105 @@
+{
+    "rubrics": {
+        "0": "Opened a search engine or a browser",
+        "1": "Navigated to Google Scholar",
+        "2": "Searched for 'Segment Anything' paper",
+        "3": "Viewed the citations of 'Segment Anything'",
+        "4": "Viewed multiple citing papers and there citations",
+        "5": "Found the most-cited paper amoung the viewed citing papers",
+        "6": "Stopped at a screen that shows the paper's abstract"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": false,
+        "3": false,
+        "4": false,
+        "5": false,
+        "6": false
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false
+        }
+    ],
+    "action_count": 7,
+    "correct_action_count": 5,
+    "reflection_count": 7,
+    "correct_reflection_count": 7,
+    "action_accuracy": 0.7142857142857143,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.2857142857142857,
+    "error_recovery_score": 1.0,
+    "early_termination": null,
+    "early_termination_reason": null
+}

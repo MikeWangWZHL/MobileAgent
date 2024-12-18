@@ -1,0 +1,95 @@
+{
+    "rubrics": {
+        "0": "Opened Maps",
+        "1": "Found a bakery within 10min drive",
+        "2": "Confirmed they offer birthday cakes",
+        "3": "Retrieved bakery's phone number",
+        "4": "Opened Notes",
+        "5": "Created a new note with the bakery's phone number"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": false,
+        "2": false,
+        "3": false,
+        "4": false,
+        "5": false
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        },
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false
+        }
+    ],
+    "action_count": 7,
+    "correct_action_count": 3,
+    "reflection_count": 7,
+    "correct_reflection_count": 6,
+    "action_accuracy": 0.42857142857142855,
+    "reflection_accuracy": 0.8571428571428571,
+    "perfectly_done": false,
+    "satisfactory_score": 0.16666666666666666,
+    "error_recovery_score": 0.0,
+    "early_termination": true,
+    "early_termination_reason": "max_consecutive_failures"
+}

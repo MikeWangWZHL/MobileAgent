@@ -1,0 +1,78 @@
+{
+    "rubrics": {
+        "0": "Opened Chrome",
+        "1": "Searched for Chinese recipes using onions, beef, and potatoes under 1 hour",
+        "2": "Found a suitable recipe",
+        "3": "Opened YouTube",
+        "4": "Searched for a video tutorial for the chosen recipe",
+        "5": "Selected a relevant tutorial video",
+        "6": "Stopped at a screen showing the video"
+    },
+    "rubrics_satisfaction": {
+        "0": false,
+        "1": false,
+        "2": false,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": false,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": false,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": false,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": false,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": false,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": true,
+            "5": false,
+            "6": false
+        },
+        {
+            "0": false,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true
+        }
+    ],
+    "action_count": 4,
+    "correct_action_count": 4,
+    "reflection_count": 4,
+    "correct_reflection_count": 3,
+    "action_accuracy": 1.0,
+    "reflection_accuracy": 0.75,
+    "perfectly_done": false,
+    "satisfactory_score": 0.5714285714285714,
+    "error_recovery_score": 1.0,
+    "early_termination": null,
+    "early_termination_reason": null
+}

@@ -1,0 +1,111 @@
+{
+    "rubrics": {
+        "0": "Opened Walmart",
+        "1": "Searched for ribeye steak",
+        "2": "Checked if ribeye steak is on sale",
+        "3": "Searched for fresh oranges",
+        "4": "Checked if fresh oranges are on sale",
+        "5": "Searched for toilet paper",
+        "6": "Checked if toilet paper is on sale",
+        "7": "Opened Notes",
+        "8": "Added a note with the prices of items",
+        "9": "The added note only contains items that are on sale"
+    },
+    "rubrics_satisfaction": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": false,
+        "4": false,
+        "5": false,
+        "6": false,
+        "7": false,
+        "8": false,
+        "9": false
+    },
+    "rubrics_satisfaction_history": [
+        {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        },
+        {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false
+        }
+    ],
+    "action_count": 5,
+    "correct_action_count": 3,
+    "reflection_count": 5,
+    "correct_reflection_count": 5,
+    "action_accuracy": 0.6,
+    "reflection_accuracy": 1.0,
+    "perfectly_done": false,
+    "satisfactory_score": 0.3,
+    "error_recovery_score": 0.5,
+    "early_termination": null,
+    "early_termination_reason": null
+}
